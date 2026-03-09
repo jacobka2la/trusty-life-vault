@@ -1,4 +1,5 @@
 import { Shield, Lock, Eye, UserCheck, KeyRound } from 'lucide-react';
+import Logo from '@/components/Logo';
 import { Card, CardContent } from '@/components/ui/card';
 
 const securityItems = [
