@@ -107,12 +107,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Update the contact with invitation status
+    // Only mark as invitation_sent, don't set invited_user_id yet
+    // invited_user_id will be set when the user actually accepts and confirms their account
     await supabaseAdmin
       .from("trusted_contacts")
       .update({
         invitation_sent: true,
-        invited_user_id: inviteData.user.id,
       })
       .eq("id", contactId);
 
