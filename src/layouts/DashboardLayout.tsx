@@ -74,7 +74,7 @@ export const DashboardLayout = () => {
           <header className="sticky top-0 z-30 bg-card border-b border-border">
             <div className="flex items-center h-14 px-4 gap-4">
               <Link to="/dashboard" className="flex items-center gap-2 flex-shrink-0">
-                <Shield className="h-6 w-6 text-primary" />
+                <img src={logoImg} alt="DocuVault" className="h-7 w-7" style={{ filter: 'brightness(0) saturate(100%) invert(25%) sepia(98%) saturate(1800%) hue-rotate(211deg) brightness(92%) contrast(95%)' }} />
                 <span className="font-heading text-lg font-bold text-foreground hidden sm:inline">DocuVault</span>
               </Link>
 
