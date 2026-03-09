@@ -34,7 +34,8 @@ const SettingsPage = () => {
   };
 
   const handleChangePassword = async () => {
-    if (newPassword.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    const pwError = validatePassword(newPassword);
+    if (pwError) { toast.error(pwError); return; }
     setChangingPw(true);
     const { error } = await updatePassword(newPassword);
     setChangingPw(false);
