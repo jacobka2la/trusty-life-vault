@@ -20,6 +20,7 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Onboarding from "./pages/Onboarding";
+import InviteLanding from "./pages/InviteLanding";
 import Dashboard from "./pages/dashboard/Dashboard";
 import VaultItems from "./pages/dashboard/VaultItems";
 import Documents from "./pages/dashboard/Documents";
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/invite" element={<InviteLanding />} />
 
             {/* Onboarding */}
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />

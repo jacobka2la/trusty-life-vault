@@ -16,7 +16,6 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
-    // Verify the calling user using the Authorization header with the service role client
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -37,7 +36,6 @@ Deno.serve(async (req) => {
 
     const { contactId } = await req.json();
 
-    // Get the contact details
     const { data: contact, error: contactError } = await supabaseAdmin
       .from("trusted_contacts")
       .select("*")
@@ -46,6 +44,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (contactError || !contact) {
+      console.error("Contact error:", contactError);
       return new Response(JSON.stringify({ error: "Contact not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -59,7 +58,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get the inviter's profile
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("first_name, last_name")
@@ -70,8 +68,31 @@ Deno.serve(async (req) => {
       ? `${profile.first_name} ${profile.last_name}`.trim()
       : callingUser.email;
 
-    // Invite the user via Supabase Auth
-    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+    // Check if this person already has an account
+    const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
+    const existingUser = users?.find((u: any) => u.email === contact.email);
+
+    if (existingUser) {
+      // User already exists — link them directly
+      await supabaseAdmin
+        .from("trusted_contacts")
+        .update({ 
+          invitation_sent: true, 
+          invited_user_id: existingUser.id, 
+          invitation_sent_at: new Date().toISOString() 
+        })
+        .eq("id", contactId);
+
+      return new Response(
+        JSON.stringify({ success: true, message: `${contact.full_name} already has an account and has been linked to your vault.` }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // New user — send invite via Supabase Auth
+    const origin = req.headers.get("origin") || req.headers.get("referer")?.replace(/\/+$/, "") || supabaseUrl;
+    
+    const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       contact.email,
       {
         data: {
@@ -80,35 +101,18 @@ Deno.serve(async (req) => {
           invited_as_contact: true,
           invited_by: callingUser.id,
         },
-        redirectTo: `${req.headers.get("origin") || supabaseUrl}/dashboard/shared`,
+        redirectTo: `${origin}/invite?contact=${contactId}`,
       }
     );
 
     if (inviteError) {
-      // If user already exists, look them up and link
-      if (inviteError.message?.includes("already been registered") || (inviteError as any).status === 422) {
-        const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
-        const existingUser = users?.find((u: any) => u.email === contact.email);
-        if (existingUser) {
-          await supabaseAdmin
-            .from("trusted_contacts")
-            .update({ invitation_sent: true, invited_user_id: existingUser.id, invitation_sent_at: new Date().toISOString() })
-            .eq("id", contactId);
-
-          return new Response(
-            JSON.stringify({ success: true, message: "User already has an account and has been linked." }),
-            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-      }
+      console.error("Invite error:", inviteError);
       return new Response(JSON.stringify({ error: inviteError.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Only mark as invitation_sent, don't set invited_user_id yet
-    // invited_user_id will be set when the user actually accepts and confirms their account
     await supabaseAdmin
       .from("trusted_contacts")
       .update({
