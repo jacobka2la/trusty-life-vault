@@ -18,6 +18,7 @@ interface Contact {
   access_level: string;
   invitation_sent?: boolean;
   invited_user_id?: string | null;
+  invitation_sent_at?: string | null;
 }
 
 const emptyForm = { full_name: '', email: '', phone: '', relationship: '', access_level: 'view' };
@@ -55,6 +56,7 @@ const TrustedContacts = () => {
       if (emailChanged) {
         updateData.invitation_sent = false;
         updateData.invited_user_id = null;
+        updateData.invitation_sent_at = null;
       }
       const { error } = await supabase.from('trusted_contacts').update(updateData).eq('id', editing);
       if (error) { toast.error(error.message); return; }
@@ -176,11 +178,27 @@ const TrustedContacts = () => {
                     <span className="text-xs font-medium text-vault-green flex items-center gap-1">
                       <CheckCircle className="h-3 w-3" /> Accepted!
                     </span>
-                  ) : c.invitation_sent ? (
-                    <span className="text-xs font-medium text-vault-gold flex items-center gap-1">
-                      <Mail className="h-3 w-3" /> Invite Sent
-                    </span>
-                  ) : c.email ? (
+                  ) : c.invitation_sent ? (() => {
+                    const sentAt = c.invitation_sent_at ? new Date(c.invitation_sent_at).getTime() : 0;
+                    const threeHoursMs = 3 * 60 * 60 * 1000;
+                    const canResend = Date.now() - sentAt > threeHoursMs;
+                    return canResend ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-xs gap-1 text-primary"
+                        disabled={inviting === c.id}
+                        onClick={() => sendInvite(c.id)}
+                      >
+                        <Mail className="h-3 w-3" />
+                        {inviting === c.id ? 'Sending...' : 'Resend Invite'}
+                      </Button>
+                    ) : (
+                      <span className="text-xs font-medium text-vault-gold flex items-center gap-1">
+                        <Mail className="h-3 w-3" /> Invite Sent
+                      </span>
+                    );
+                  })() : c.email ? (
                     <Button
                       variant="ghost"
                       size="sm"

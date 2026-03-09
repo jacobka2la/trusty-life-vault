@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
         if (existingUser) {
           await supabaseAdmin
             .from("trusted_contacts")
-            .update({ invitation_sent: true, invited_user_id: existingUser.id })
+            .update({ invitation_sent: true, invited_user_id: existingUser.id, invitation_sent_at: new Date().toISOString() })
             .eq("id", contactId);
 
           return new Response(
@@ -113,6 +113,7 @@ Deno.serve(async (req) => {
       .from("trusted_contacts")
       .update({
         invitation_sent: true,
+        invitation_sent_at: new Date().toISOString(),
       })
       .eq("id", contactId);
 

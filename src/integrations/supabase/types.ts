@@ -123,6 +123,7 @@ export type Database = {
           full_name: string
           id: string
           invitation_sent: boolean
+          invitation_sent_at: string | null
           invited_user_id: string | null
           phone: string | null
           relationship: string | null
@@ -135,6 +136,7 @@ export type Database = {
           full_name: string
           id?: string
           invitation_sent?: boolean
+          invitation_sent_at?: string | null
           invited_user_id?: string | null
           phone?: string | null
           relationship?: string | null
@@ -147,6 +149,7 @@ export type Database = {
           full_name?: string
           id?: string
           invitation_sent?: boolean
+          invitation_sent_at?: string | null
           invited_user_id?: string | null
           phone?: string | null
           relationship?: string | null
