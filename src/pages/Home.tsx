@@ -27,6 +27,10 @@ const Home = () => (
               <Link to="/how-it-works">How It Works</Link>
             </Button>
           </div>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Already have an account?{' '}
+            <Link to="/login" className="text-primary font-medium hover:underline">Log in</Link>
+          </p>
         </motion.div>
       </div>
     </section>
