@@ -79,7 +79,7 @@ const Onboarding = () => {
   const steps = [
     // 0: Welcome
     <div key={0} className="text-center space-y-4">
-      <Shield className="h-16 w-16 text-primary mx-auto" />
+      <Logo className="h-16 w-16 mx-auto" />
       <h2 className="font-heading text-2xl font-bold text-foreground">Welcome to DocuVault!</h2>
       <p className="text-muted-foreground max-w-md mx-auto">Your secure vault is ready. Let's walk through a few quick steps to help you get organized.</p>
       <Button onClick={() => setStep(1)} className="mt-4">Let's Get Started <ArrowRight className="ml-2 h-4 w-4" /></Button>
