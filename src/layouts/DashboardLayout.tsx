@@ -16,9 +16,32 @@ const navItems = [
 ];
 
 export const DashboardLayout = () => {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(localStorage.getItem('docuvault_selected_plan'));
+  const [hasAssets, setHasAssets] = useState(false);
+  const [checkingAssets, setCheckingAssets] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const check = async () => {
+      const [{ count: vaultCount }, { count: docCount }] = await Promise.all([
+        supabase.from('vault_items').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('documents').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+      ]);
+      setHasAssets((vaultCount ?? 0) > 0 || (docCount ?? 0) > 0);
+      setCheckingAssets(false);
+    };
+    check();
+  }, [user, location.pathname]);
+
+  const needsPlan = hasAssets && !selectedPlan;
+
+  const handlePlanSelect = (plan: string) => {
+    setSelectedPlan(plan);
+    localStorage.setItem('docuvault_selected_plan', plan);
+  };
 
   const handleLogout = async () => {
     await signOut();
