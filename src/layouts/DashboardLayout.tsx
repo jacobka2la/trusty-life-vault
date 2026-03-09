@@ -38,7 +38,7 @@ export const DashboardLayout = () => {
         supabase.from('profiles').select('selected_plan').eq('user_id', user.id).single(),
         (supabase.from('trusted_contacts').select('id') as any).eq('invited_user_id', user.id).limit(1),
       ]);
-      const plan = (profileData as any)?.selected_plan || localStorage.getItem('docuvault_selected_plan') || null;
+      const plan = (profileData as any)?.selected_plan || null;
       setSelectedPlan(plan);
       setIsViewOnlyContact(!!(contactLinks && contactLinks.length > 0));
       if (!(profileData as any)?.selected_plan && plan) {
