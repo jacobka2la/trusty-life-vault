@@ -79,33 +79,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    // New user — generate invite link that points to the app directly
+    // New user — generate a simple invite link (no Supabase auth invite)
     const origin = req.headers.get("origin") || req.headers.get("referer")?.replace(/\/+$/, "") || "https://trusty-life-vault.lovable.app";
-    
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'invite',
-      email: contact.email,
-      options: {
-        data: {
-          first_name: contact.full_name.split(" ")[0] || "",
-          last_name: contact.full_name.split(" ").slice(1).join(" ") || "",
-          invited_as_contact: true,
-          invited_by: callingUser.id,
-        },
-      },
-    });
-
-    if (linkError) {
-      console.error("Generate link error:", linkError);
-      return new Response(JSON.stringify({ error: linkError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Construct a direct app link with the token hash
-    const hashedToken = linkData?.properties?.hashed_token;
-    const inviteLink = `${origin}/invite?token_hash=${encodeURIComponent(hashedToken)}&type=invite&contact=${contactId}`;
+    const inviteLink = `${origin}/invite?contact=${contactId}`;
 
     await supabaseAdmin
       .from("trusted_contacts")
