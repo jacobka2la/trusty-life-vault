@@ -5,9 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { validatePassword, PASSWORD_HINT } from '@/lib/passwordValidation';
+import { Badge } from '@/components/ui/badge';
+
+const planLabels: Record<string, string> = {
+  trial: '14-Day Free Trial',
+  monthly: 'Monthly ($6/mo)',
+  annual: 'Annual ($59/yr)',
+};
 
 const SettingsPage = () => {
   const { user, signOut, updatePassword } = useAuth();
@@ -16,11 +22,17 @@ const SettingsPage = () => {
   const [saving, setSaving] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [changingPw, setChangingPw] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [changingPlan, setChangingPlan] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('profiles').select('first_name, last_name').eq('user_id', user.id).single().then(({ data }) => {
-      if (data) { setFirstName(data.first_name); setLastName(data.last_name); }
+    supabase.from('profiles').select('first_name, last_name, selected_plan').eq('user_id', user.id).single().then(({ data }) => {
+      if (data) {
+        setFirstName(data.first_name);
+        setLastName(data.last_name);
+        setSelectedPlan((data as any).selected_plan || localStorage.getItem('docuvault_selected_plan'));
+      }
     });
   }, [user]);
 
@@ -43,6 +55,28 @@ const SettingsPage = () => {
     else { toast.success('Password updated'); setNewPassword(''); }
   };
 
+  const handleChangePlan = async (plan: string) => {
+    if (!user) return;
+    setChangingPlan(true);
+    const { error } = await supabase.from('profiles').update({ selected_plan: plan } as any).eq('user_id', user.id);
+    setChangingPlan(false);
+    if (error) { toast.error(error.message); return; }
+    setSelectedPlan(plan);
+    localStorage.setItem('docuvault_selected_plan', plan);
+    toast.success(`Plan changed to ${planLabels[plan] || plan}`);
+  };
+
+  const handleCancelPlan = async () => {
+    if (!user) return;
+    setChangingPlan(true);
+    const { error } = await supabase.from('profiles').update({ selected_plan: null } as any).eq('user_id', user.id);
+    setChangingPlan(false);
+    if (error) { toast.error(error.message); return; }
+    setSelectedPlan(null);
+    localStorage.removeItem('docuvault_selected_plan');
+    toast.success('Plan cancelled');
+  };
+
   return (
     <div>
       <h1 className="font-heading text-2xl font-bold text-foreground mb-6">Settings</h1>
@@ -62,6 +96,32 @@ const SettingsPage = () => {
             </div>
             <p className="text-sm text-muted-foreground">Email: {user?.email}</p>
             <Button onClick={handleSaveProfile} disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</Button>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-vault">
+          <CardHeader><CardTitle className="font-heading text-lg">Subscription Plan</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            {selectedPlan ? (
+              <>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-foreground">Current plan:</span>
+                  <Badge variant="secondary" className="text-sm">{planLabels[selectedPlan] || selectedPlan}</Badge>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {['trial', 'monthly', 'annual'].filter(p => p !== selectedPlan).map(plan => (
+                    <Button key={plan} variant="outline" size="sm" disabled={changingPlan} onClick={() => handleChangePlan(plan)}>
+                      Switch to {planLabels[plan]}
+                    </Button>
+                  ))}
+                </div>
+                <Button variant="destructive" size="sm" disabled={changingPlan} onClick={handleCancelPlan}>
+                  Cancel Plan
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">No active plan. Add vault items to get started with a plan.</p>
+            )}
           </CardContent>
         </Card>
 

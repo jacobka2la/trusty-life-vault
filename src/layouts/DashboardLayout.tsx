@@ -20,28 +20,32 @@ const navItems = [
 export const DashboardLayout = () => {
   const { user, signOut } = useAuth();
   const location = useLocation();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(localStorage.getItem('docuvault_selected_plan'));
-  const [hasAssets, setHasAssets] = useState(false);
-  const [checkingAssets, setCheckingAssets] = useState(true);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [checkingPlan, setCheckingPlan] = useState(true);
 
   useEffect(() => {
     if (!user) return;
     const check = async () => {
-      const [{ count: vaultCount }, { count: docCount }] = await Promise.all([
-        supabase.from('vault_items').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('documents').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-      ]);
-      setHasAssets((vaultCount ?? 0) > 0 || (docCount ?? 0) > 0);
-      setCheckingAssets(false);
+      const { data } = await supabase.from('profiles').select('selected_plan').eq('user_id', user.id).single();
+      const plan = data?.selected_plan || localStorage.getItem('docuvault_selected_plan') || null;
+      setSelectedPlan(plan);
+      // Migrate localStorage plan to DB if needed
+      if (!data?.selected_plan && plan) {
+        await supabase.from('profiles').update({ selected_plan: plan } as any).eq('user_id', user.id);
+      }
+      setCheckingPlan(false);
     };
     check();
-  }, [user, location.pathname]);
+  }, [user]);
 
-  const needsPlan = hasAssets && !selectedPlan;
+  const needsPlan = !selectedPlan;
 
-  const handlePlanSelect = (plan: string) => {
+  const handlePlanSelect = async (plan: string) => {
     setSelectedPlan(plan);
     localStorage.setItem('docuvault_selected_plan', plan);
+    if (user) {
+      await supabase.from('profiles').update({ selected_plan: plan } as any).eq('user_id', user.id);
+    }
   };
 
   const handleLogout = async () => {
@@ -51,7 +55,7 @@ export const DashboardLayout = () => {
   // Plan gate with smooth transition
   return (
     <AnimatePresence mode="wait">
-      {!checkingAssets && needsPlan ? (
+      {!checkingPlan && needsPlan ? (
         <motion.div
           key="plan-gate"
           initial={{ opacity: 0 }}
