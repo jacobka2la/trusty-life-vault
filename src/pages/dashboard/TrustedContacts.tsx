@@ -111,10 +111,17 @@ const TrustedContacts = () => {
         body: { contactId },
       });
       if (error) throw error;
-      toast.success(data?.message || 'Invitation sent!');
+      
+      // If there's an invite link, copy it to clipboard
+      if (data?.inviteLink) {
+        await navigator.clipboard.writeText(data.inviteLink);
+        toast.success('Invite link copied to clipboard! Share it with your contact.');
+      } else {
+        toast.success(data?.message || 'Contact linked!');
+      }
       fetchContacts();
     } catch (err: any) {
-      toast.error(err.message || 'Failed to send invitation');
+      toast.error(err.message || 'Failed to generate invitation');
     } finally {
       setInviting(null);
     }
@@ -326,17 +333,17 @@ const TrustedContacts = () => {
                     return canResend ? (
                       <Button variant="ghost" size="sm" className="h-6 text-xs gap-1 text-primary" disabled={inviting === c.id} onClick={() => sendInvite(c.id)}>
                         <Mail className="h-3 w-3" />
-                        {inviting === c.id ? 'Sending...' : 'Resend Invite'}
+                        {inviting === c.id ? 'Generating...' : 'Copy New Link'}
                       </Button>
                     ) : (
                       <span className="text-xs font-medium text-vault-gold flex items-center gap-1">
-                        <Mail className="h-3 w-3" /> Invite Sent
+                        <Mail className="h-3 w-3" /> Link Generated
                       </span>
                     );
                   })() : c.email ? (
                     <Button variant="ghost" size="sm" className="h-6 text-xs gap-1 text-primary" disabled={inviting === c.id} onClick={() => sendInvite(c.id)}>
                       <Mail className="h-3 w-3" />
-                      {inviting === c.id ? 'Sending...' : 'Send Invite'}
+                      {inviting === c.id ? 'Generating...' : 'Get Invite Link'}
                     </Button>
                   ) : null}
                 </div>

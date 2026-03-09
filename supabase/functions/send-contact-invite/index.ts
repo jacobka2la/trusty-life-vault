@@ -58,16 +58,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("first_name, last_name")
-      .eq("user_id", callingUser.id)
-      .single();
-
-    const inviterName = profile
-      ? `${profile.first_name} ${profile.last_name}`.trim()
-      : callingUser.email;
-
     // Check if this person already has an account
     const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
     const existingUser = users?.find((u: any) => u.email === contact.email);
@@ -89,29 +79,33 @@ Deno.serve(async (req) => {
       );
     }
 
-    // New user — send invite via Supabase Auth
-    const origin = req.headers.get("origin") || req.headers.get("referer")?.replace(/\/+$/, "") || supabaseUrl;
+    // New user — generate invite link that points to the app directly
+    const origin = req.headers.get("origin") || req.headers.get("referer")?.replace(/\/+$/, "") || "https://trusty-life-vault.lovable.app";
     
-    const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      contact.email,
-      {
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'invite',
+      email: contact.email,
+      options: {
         data: {
           first_name: contact.full_name.split(" ")[0] || "",
           last_name: contact.full_name.split(" ").slice(1).join(" ") || "",
           invited_as_contact: true,
           invited_by: callingUser.id,
         },
-        redirectTo: `${origin}/invite?contact=${contactId}`,
-      }
-    );
+      },
+    });
 
-    if (inviteError) {
-      console.error("Invite error:", inviteError);
-      return new Response(JSON.stringify({ error: inviteError.message }), {
+    if (linkError) {
+      console.error("Generate link error:", linkError);
+      return new Response(JSON.stringify({ error: linkError.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Construct a direct app link with the token hash
+    const hashedToken = linkData?.properties?.hashed_token;
+    const inviteLink = `${origin}/invite?token_hash=${encodeURIComponent(hashedToken)}&type=invite&contact=${contactId}`;
 
     await supabaseAdmin
       .from("trusted_contacts")
@@ -122,7 +116,11 @@ Deno.serve(async (req) => {
       .eq("id", contactId);
 
     return new Response(
-      JSON.stringify({ success: true, message: `Invitation sent to ${contact.email}` }),
+      JSON.stringify({ 
+        success: true, 
+        message: `Invite link generated for ${contact.full_name}. Share this link with them.`,
+        inviteLink,
+      }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
