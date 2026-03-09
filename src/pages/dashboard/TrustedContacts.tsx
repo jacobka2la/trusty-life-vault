@@ -50,6 +50,18 @@ const TrustedContacts = () => {
   const [sharingDialogOpen, setSharingDialogOpen] = useState(false);
   const [sharingContact, setSharingContact] = useState<Contact | null>(null);
   const [existingShares, setExistingShares] = useState<any[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPlan = async () => {
+      if (!user) return;
+      const { data } = await supabase.from('profiles').select('selected_plan').eq('user_id', user.id).single();
+      setSelectedPlan(data?.selected_plan ?? null);
+    };
+    fetchPlan();
+  }, [user]);
+
+  const hasPlan = selectedPlan && selectedPlan !== 'trusted_contact_only';
 
   const fetchContacts = async () => {
     if (!user) return;
