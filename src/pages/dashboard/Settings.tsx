@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { validatePassword, PASSWORD_HINT } from '@/lib/passwordValidation';
 
 const SettingsPage = () => {
   const { user, signOut, updatePassword } = useAuth();
@@ -33,7 +34,8 @@ const SettingsPage = () => {
   };
 
   const handleChangePassword = async () => {
-    if (newPassword.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    const pwError = validatePassword(newPassword);
+    if (pwError) { toast.error(pwError); return; }
     setChangingPw(true);
     const { error } = await updatePassword(newPassword);
     setChangingPw(false);
@@ -68,7 +70,7 @@ const SettingsPage = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>New Password</Label>
-              <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min. 6 characters" />
+              <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder={PASSWORD_HINT} />
             </div>
             <Button onClick={handleChangePassword} disabled={changingPw}>{changingPw ? 'Updating...' : 'Update Password'}</Button>
           </CardContent>

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { validatePassword, PASSWORD_HINT } from '@/lib/passwordValidation';
 
 const Signup = () => {
   const [firstName, setFirstName] = useState('');
@@ -20,8 +21,9 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    const pwError = validatePassword(password);
+    if (pwError) {
+      toast.error(pwError);
       return;
     }
     setLoading(true);
@@ -65,7 +67,7 @@ const Signup = () => {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <Input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Min. 6 characters" />
+                <Input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required placeholder={PASSWORD_HINT} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
