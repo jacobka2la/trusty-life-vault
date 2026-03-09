@@ -55,7 +55,7 @@ export const DashboardLayout = () => {
   // Plan gate with smooth transition
   return (
     <AnimatePresence mode="wait">
-      {!checkingAssets && needsPlan ? (
+      {!checkingPlan && needsPlan ? (
         <motion.div
           key="plan-gate"
           initial={{ opacity: 0 }}
