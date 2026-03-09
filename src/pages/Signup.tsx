@@ -72,6 +72,11 @@ const Signup = () => {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              <ul className="text-xs text-muted-foreground space-y-0.5 mt-1.5">
+                <li>• Minimum 10 characters</li>
+                <li>• At least one number</li>
+                <li>• At least one special character</li>
+              </ul>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Creating account...' : 'Create Account'}
