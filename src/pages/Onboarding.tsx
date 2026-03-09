@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Shield, Heart, FolderPlus, Upload, Users, Bell, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Shield, Heart, FolderPlus, Upload, Users, Bell, CheckCircle, ArrowRight, ArrowLeft, FileText, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 const totalSteps = 7;
@@ -31,6 +31,11 @@ const Onboarding = () => {
 
   // Reminder
   const [reminderFreq, setReminderFreq] = useState('quarterly');
+
+  // Document upload
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const progress = ((step + 1) / totalSteps) * 100;
 
@@ -123,15 +128,64 @@ const Onboarding = () => {
       <button onClick={() => setStep(3)} className="block mx-auto text-sm text-muted-foreground hover:text-foreground">Skip for now</button>
     </div>,
 
-    // 3: Upload document (simplified - skip)
-    <div key={3} className="text-center space-y-4">
-      <Upload className="h-12 w-12 text-primary mx-auto" />
-      <h2 className="font-heading text-xl font-bold text-foreground">Upload Your First Document</h2>
-      <p className="text-sm text-muted-foreground max-w-md mx-auto">You can upload PDFs, images, and documents from your dashboard anytime.</p>
+    // 3: Upload document
+    <div key={3} className="space-y-4">
+      <div className="text-center">
+        <Upload className="h-12 w-12 text-primary mx-auto mb-2" />
+        <h2 className="font-heading text-xl font-bold text-foreground">Upload Your First Document</h2>
+        <p className="text-sm text-muted-foreground max-w-md mx-auto">Upload a PDF, image, or document to keep it safe in your vault.</p>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp"
+        className="hidden"
+        onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+      />
+
+      {!uploadFile ? (
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="mx-auto flex flex-col items-center justify-center w-48 h-48 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 hover:border-primary/60 transition-colors cursor-pointer"
+        >
+          <FileText className="h-10 w-10 text-primary mb-3" />
+          <span className="text-sm font-medium text-foreground">Click to upload</span>
+          <span className="text-xs text-muted-foreground mt-1">PDF, DOC, JPG, PNG</span>
+        </button>
+      ) : (
+        <div className="mx-auto flex items-center gap-3 w-48 p-3 rounded-xl border border-border bg-muted/50">
+          <FileText className="h-6 w-6 text-primary flex-shrink-0" />
+          <span className="text-sm text-foreground truncate flex-1">{uploadFile.name}</span>
+          <button onClick={() => setUploadFile(null)} className="text-muted-foreground hover:text-foreground">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       <div className="flex gap-3 justify-center">
         <Button variant="outline" onClick={() => setStep(2)}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button>
-        <Button onClick={() => setStep(4)}>Continue <ArrowRight className="ml-2 h-4 w-4" /></Button>
+        <Button
+          disabled={uploading}
+          onClick={async () => {
+            if (!uploadFile || !user) { setStep(4); return; }
+            setUploading(true);
+            const filePath = `${user.id}/${Date.now()}_${uploadFile.name}`;
+            const { error: upErr } = await supabase.storage.from('vault-documents').upload(filePath, uploadFile);
+            if (upErr) { toast.error(upErr.message); setUploading(false); return; }
+            const { data: urlData } = supabase.storage.from('vault-documents').getPublicUrl(filePath);
+            await supabase.from('documents').insert({
+              user_id: user.id, file_name: uploadFile.name, file_type: uploadFile.type, file_url: urlData.publicUrl,
+            });
+            toast.success('Document uploaded!');
+            setUploading(false);
+            setStep(4);
+          }}
+        >
+          {uploading ? 'Uploading...' : uploadFile ? 'Upload & Continue' : 'Continue'} <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
       </div>
+      <button onClick={() => setStep(4)} className="block mx-auto text-sm text-muted-foreground hover:text-foreground">Skip for now</button>
     </div>,
 
     // 4: Add trusted contact
