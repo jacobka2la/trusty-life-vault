@@ -23,15 +23,20 @@ export const DashboardLayout = () => {
   const location = useLocation();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [checkingPlan, setCheckingPlan] = useState(true);
+  const [isViewOnlyContact, setIsViewOnlyContact] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     const check = async () => {
-      const { data } = await supabase.from('profiles').select('selected_plan').eq('user_id', user.id).single();
-      const plan = data?.selected_plan || localStorage.getItem('docuvault_selected_plan') || null;
+      const [{ data: profileData }, { data: contactLinks }] = await Promise.all([
+        supabase.from('profiles').select('selected_plan').eq('user_id', user.id).single(),
+        (supabase.from('trusted_contacts').select('id') as any).eq('invited_user_id', user.id).limit(1),
+      ]);
+      const plan = (profileData as any)?.selected_plan || localStorage.getItem('docuvault_selected_plan') || null;
       setSelectedPlan(plan);
+      setIsViewOnlyContact(contactLinks && contactLinks.length > 0);
       // Migrate localStorage plan to DB if needed
-      if (!data?.selected_plan && plan) {
+      if (!(profileData as any)?.selected_plan && plan) {
         await supabase.from('profiles').update({ selected_plan: plan } as any).eq('user_id', user.id);
       }
       setCheckingPlan(false);
@@ -39,7 +44,8 @@ export const DashboardLayout = () => {
     check();
   }, [user]);
 
-  const needsPlan = !selectedPlan;
+  // View-only contacts don't need a plan
+  const needsPlan = !selectedPlan && !isViewOnlyContact;
 
   const handlePlanSelect = async (plan: string) => {
     setSelectedPlan(plan);
