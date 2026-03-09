@@ -24,7 +24,7 @@ export const useUserRole = (): UserRoleInfo => {
     const check = async () => {
       const [{ data: profile }, { data: contactLinks }] = await Promise.all([
         supabase.from('profiles').select('selected_plan').eq('user_id', user.id).single(),
-        supabase.from('trusted_contacts').select('id').eq('invited_user_id' as any, user.id).limit(1),
+        (supabase.from('trusted_contacts').select('id') as any).eq('invited_user_id', user.id).limit(1),
       ]);
 
       const plan = profile?.selected_plan || localStorage.getItem('docuvault_selected_plan') || null;
