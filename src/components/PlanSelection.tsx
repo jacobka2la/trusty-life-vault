@@ -94,5 +94,6 @@ const PlanSelection = ({ onSelect }: PlanSelectionProps) => {
     </div>
   </div>
 );
+};
 
 export default PlanSelection;
