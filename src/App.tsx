@@ -25,6 +25,7 @@ import VaultItems from "./pages/dashboard/VaultItems";
 import Documents from "./pages/dashboard/Documents";
 import TrustedContacts from "./pages/dashboard/TrustedContacts";
 import Reminders from "./pages/dashboard/Reminders";
+import SharedVault from "./pages/dashboard/SharedVault";
 import SettingsPage from "./pages/dashboard/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="documents" element={<Documents />} />
               <Route path="contacts" element={<TrustedContacts />} />
               <Route path="reminders" element={<Reminders />} />
+              <Route path="shared" element={<SharedVault />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
 

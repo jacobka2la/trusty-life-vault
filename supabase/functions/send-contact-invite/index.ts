@@ -1,0 +1,133 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.99.0";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+    // Verify the calling user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: { user: callingUser }, error: authError } = await createClient(
+      supabaseUrl,
+      Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    ).auth.getUser();
+
+    if (authError || !callingUser) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { contactId } = await req.json();
+
+    // Get the contact details
+    const { data: contact, error: contactError } = await supabase
+      .from("trusted_contacts")
+      .select("*")
+      .eq("id", contactId)
+      .eq("user_id", callingUser.id)
+      .single();
+
+    if (contactError || !contact) {
+      return new Response(JSON.stringify({ error: "Contact not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!contact.email) {
+      return new Response(JSON.stringify({ error: "Contact has no email" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Get the inviter's profile
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("first_name, last_name")
+      .eq("user_id", callingUser.id)
+      .single();
+
+    const inviterName = profile
+      ? `${profile.first_name} ${profile.last_name}`.trim()
+      : callingUser.email;
+
+    // Invite the user via Supabase Auth (sends magic link email)
+    const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
+      contact.email,
+      {
+        data: {
+          first_name: contact.full_name.split(" ")[0] || "",
+          last_name: contact.full_name.split(" ").slice(1).join(" ") || "",
+          invited_as_contact: true,
+          invited_by: callingUser.id,
+        },
+        redirectTo: `${req.headers.get("origin") || supabaseUrl}/dashboard/shared`,
+      }
+    );
+
+    if (inviteError) {
+      // If user already exists, look them up and link
+      if (inviteError.message?.includes("already been registered") || inviteError.status === 422) {
+        const { data: { users } } = await supabase.auth.admin.listUsers();
+        const existingUser = users?.find((u: any) => u.email === contact.email);
+        if (existingUser) {
+          await supabase
+            .from("trusted_contacts")
+            .update({ invitation_sent: true, invited_user_id: existingUser.id })
+            .eq("id", contactId);
+
+          return new Response(
+            JSON.stringify({ success: true, message: "User already has an account and has been linked." }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+      return new Response(JSON.stringify({ error: inviteError.message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Update the contact with invitation status and the new user's ID
+    await supabase
+      .from("trusted_contacts")
+      .update({
+        invitation_sent: true,
+        invited_user_id: inviteData.user.id,
+      })
+      .eq("id", contactId);
+
+    return new Response(
+      JSON.stringify({ success: true, message: `Invitation sent to ${contact.email}` }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Error sending invite:", error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});

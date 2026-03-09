@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { LayoutDashboard, FolderOpen, FileText, Users, Bell, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, FileText, Users, Bell, Settings, LogOut, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +15,7 @@ const navItems = [
   { label: 'Contacts', href: '/dashboard/contacts', icon: Users },
   { label: 'Reminders', href: '/dashboard/reminders', icon: Bell },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { label: 'Shared', href: '/dashboard/shared', icon: Eye },
 ];
 
 export const DashboardLayout = () => {
@@ -22,15 +23,20 @@ export const DashboardLayout = () => {
   const location = useLocation();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [checkingPlan, setCheckingPlan] = useState(true);
+  const [isViewOnlyContact, setIsViewOnlyContact] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     const check = async () => {
-      const { data } = await supabase.from('profiles').select('selected_plan').eq('user_id', user.id).single();
-      const plan = data?.selected_plan || localStorage.getItem('docuvault_selected_plan') || null;
+      const [{ data: profileData }, { data: contactLinks }] = await Promise.all([
+        supabase.from('profiles').select('selected_plan').eq('user_id', user.id).single(),
+        (supabase.from('trusted_contacts').select('id') as any).eq('invited_user_id', user.id).limit(1),
+      ]);
+      const plan = (profileData as any)?.selected_plan || localStorage.getItem('docuvault_selected_plan') || null;
       setSelectedPlan(plan);
+      setIsViewOnlyContact(contactLinks && contactLinks.length > 0);
       // Migrate localStorage plan to DB if needed
-      if (!data?.selected_plan && plan) {
+      if (!(profileData as any)?.selected_plan && plan) {
         await supabase.from('profiles').update({ selected_plan: plan } as any).eq('user_id', user.id);
       }
       setCheckingPlan(false);
@@ -38,7 +44,8 @@ export const DashboardLayout = () => {
     check();
   }, [user]);
 
-  const needsPlan = !selectedPlan;
+  // View-only contacts don't need a plan
+  const needsPlan = !selectedPlan && !isViewOnlyContact;
 
   const handlePlanSelect = async (plan: string) => {
     setSelectedPlan(plan);
