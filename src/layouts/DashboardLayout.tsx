@@ -29,7 +29,6 @@ export const DashboardLayout = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [checkingPlan, setCheckingPlan] = useState(true);
   const [isViewOnlyContact, setIsViewOnlyContact] = useState(false);
-  const [skippedAsViewer, setSkippedAsViewer] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -41,16 +40,12 @@ export const DashboardLayout = () => {
       const plan = (profileData as any)?.selected_plan || null;
       setSelectedPlan(plan);
       setIsViewOnlyContact(!!(contactLinks && contactLinks.length > 0));
-      if (!(profileData as any)?.selected_plan && plan) {
-        await supabase.from('profiles').update({ selected_plan: plan } as any).eq('user_id', user.id);
-      }
       setCheckingPlan(false);
     };
     check();
   }, [user]);
 
-  // Show plan gate only if no plan AND (not a viewer OR hasn't skipped)
-  const needsPlan = !selectedPlan && !(isViewOnlyContact && skippedAsViewer);
+  const needsPlan = !selectedPlan;
 
   const handlePlanSelect = async (plan: string) => {
     setSelectedPlan(plan);
