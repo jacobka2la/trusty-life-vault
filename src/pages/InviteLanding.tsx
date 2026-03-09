@@ -31,7 +31,7 @@ const InviteLanding = () => {
   // If user is already logged in, redirect to shared vault
   useEffect(() => {
     if (user) {
-      navigate('/dashboard/shared');
+      navigate('/dashboard');
     }
   }, [user, navigate]);
 
