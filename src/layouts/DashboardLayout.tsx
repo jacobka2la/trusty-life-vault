@@ -15,6 +15,7 @@ const navItems = [
   { label: 'Contacts', href: '/dashboard/contacts', icon: Users },
   { label: 'Reminders', href: '/dashboard/reminders', icon: Bell },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { label: 'Shared', href: '/dashboard/shared', icon: Eye },
 ];
 
 export const DashboardLayout = () => {

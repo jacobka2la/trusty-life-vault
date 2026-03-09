@@ -66,6 +66,7 @@ const App = () => (
               <Route path="documents" element={<Documents />} />
               <Route path="contacts" element={<TrustedContacts />} />
               <Route path="reminders" element={<Reminders />} />
+              <Route path="shared" element={<SharedVault />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
 
