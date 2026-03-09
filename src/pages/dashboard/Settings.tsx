@@ -10,7 +10,6 @@ import { validatePassword, PASSWORD_HINT } from '@/lib/passwordValidation';
 import { Badge } from '@/components/ui/badge';
 
 const planLabels: Record<string, string> = {
-  trial: '14-Day Free Trial',
   monthly: 'Monthly ($6/mo)',
   annual: 'Annual ($59/yr)',
 };
@@ -115,8 +114,8 @@ const SettingsPage = () => {
                 <p className="text-sm text-muted-foreground">
                   You currently have view-only access to shared items. Want your own vault?
                 </p>
-                <Button onClick={() => handleChangePlan('trial')}>
-                  Start Your Own Vault (14-Day Free Trial)
+                <Button onClick={() => handleChangePlan('monthly')}>
+                  Start Your Own Vault (Monthly $6/mo)
                 </Button>
               </>
             ) : selectedPlan ? (
@@ -126,7 +125,7 @@ const SettingsPage = () => {
                   <Badge variant="secondary" className="text-sm">{planLabels[selectedPlan] || selectedPlan}</Badge>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {['trial', 'monthly', 'annual'].filter(p => p !== selectedPlan).map(plan => (
+                  {['monthly', 'annual'].filter(p => p !== selectedPlan).map(plan => (
                     <Button key={plan} variant="outline" size="sm" disabled={changingPlan} onClick={() => handleChangePlan(plan)}>
                       Switch to {planLabels[plan]}
                     </Button>
