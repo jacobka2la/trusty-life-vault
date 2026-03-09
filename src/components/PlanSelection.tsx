@@ -9,13 +9,15 @@ interface PlanSelectionProps {
   onSkipAsViewer?: () => void;
 }
 
+const sharedFeatures = ['Unlimited vault items', 'Document uploads', 'Trusted contacts', 'Update reminders', 'Priority support'];
+
 const plans = [
   {
     id: 'trial',
     name: 'Free Trial',
     price: 'Start Your 14-Day Free Trial',
     subtext: 'then $6/mo',
-    features: ['Full vault access for 14 days', 'Unlimited vault items', 'Document uploads', 'Trusted contacts', 'Cancel anytime'],
+    features: ['Full vault access for 14 days', ...sharedFeatures, 'Cancel anytime'],
     cta: 'Start Free Trial',
     featured: false,
   },
@@ -25,7 +27,7 @@ const plans = [
     price: '$6',
     period: '/month',
     subtext: 'Billed monthly',
-    features: ['Unlimited vault items', 'Document uploads', 'Trusted contacts', 'Update reminders', 'Priority support'],
+    features: sharedFeatures,
     cta: 'Choose Monthly',
     featured: true,
   },
@@ -35,7 +37,7 @@ const plans = [
     price: '$59',
     period: '/year',
     subtext: 'Save ~18%',
-    features: ['Everything in Monthly', 'Best value', 'Family packet export', 'Emergency access', 'Dedicated support'],
+    features: [...sharedFeatures, 'Best value'],
     cta: 'Choose Annual',
     featured: false,
   },
