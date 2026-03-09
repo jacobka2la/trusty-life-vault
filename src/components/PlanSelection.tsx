@@ -67,7 +67,7 @@ const PlanSelection = ({ onSelect }: PlanSelectionProps) => {
             )}
             <CardTitle className="font-heading text-xl">{plan.name}</CardTitle>
             <div className="mt-3">
-              <span className="text-4xl font-bold text-foreground">{plan.price}</span>
+              <span className="text-3xl font-bold text-foreground">{plan.price}</span>
               {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
             </div>
             <p className="text-sm text-muted-foreground mt-1">{plan.subtext}</p>
