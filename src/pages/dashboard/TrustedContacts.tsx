@@ -50,6 +50,18 @@ const TrustedContacts = () => {
   const [sharingDialogOpen, setSharingDialogOpen] = useState(false);
   const [sharingContact, setSharingContact] = useState<Contact | null>(null);
   const [existingShares, setExistingShares] = useState<any[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPlan = async () => {
+      if (!user) return;
+      const { data } = await supabase.from('profiles').select('selected_plan').eq('user_id', user.id).single();
+      setSelectedPlan(data?.selected_plan ?? null);
+    };
+    fetchPlan();
+  }, [user]);
+
+  const hasPlan = selectedPlan && selectedPlan !== 'trusted_contact_only';
 
   const fetchContacts = async () => {
     if (!user) return;
@@ -198,6 +210,9 @@ const TrustedContacts = () => {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h1 className="font-heading text-2xl font-bold text-foreground">Trusted Contacts</h1>
+        {!hasPlan ? (
+          <div className="text-sm text-muted-foreground bg-muted rounded-md px-4 py-2">Please select a plan before adding trusted contacts.</div>
+        ) : (
         <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setForm(emptyForm); setEditing(null); } }}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" /> Add Contact</Button>
@@ -228,6 +243,7 @@ const TrustedContacts = () => {
             </div>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {/* Sharing Dialog */}
