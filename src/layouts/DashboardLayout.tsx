@@ -84,6 +84,14 @@ export const DashboardLayout = () => {
     </>
   );
 
+  if (!checkingAssets && needsPlan) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <PlanSelection onSelect={handlePlanSelect} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex bg-background">
       {/* Desktop sidebar */}
