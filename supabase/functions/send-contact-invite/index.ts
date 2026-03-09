@@ -14,9 +14,9 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
-    // Verify the calling user
+    // Verify the calling user using the Authorization header with the service role client
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -25,11 +25,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: { user: callingUser }, error: authError } = await createClient(
-      supabaseUrl,
-      Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    ).auth.getUser();
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user: callingUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
 
     if (authError || !callingUser) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -41,7 +38,7 @@ Deno.serve(async (req) => {
     const { contactId } = await req.json();
 
     // Get the contact details
-    const { data: contact, error: contactError } = await supabase
+    const { data: contact, error: contactError } = await supabaseAdmin
       .from("trusted_contacts")
       .select("*")
       .eq("id", contactId)
@@ -63,7 +60,7 @@ Deno.serve(async (req) => {
     }
 
     // Get the inviter's profile
-    const { data: profile } = await supabase
+    const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("first_name, last_name")
       .eq("user_id", callingUser.id)
@@ -73,8 +70,8 @@ Deno.serve(async (req) => {
       ? `${profile.first_name} ${profile.last_name}`.trim()
       : callingUser.email;
 
-    // Invite the user via Supabase Auth (sends magic link email)
-    const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
+    // Invite the user via Supabase Auth
+    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       contact.email,
       {
         data: {
@@ -89,11 +86,11 @@ Deno.serve(async (req) => {
 
     if (inviteError) {
       // If user already exists, look them up and link
-      if (inviteError.message?.includes("already been registered") || inviteError.status === 422) {
-        const { data: { users } } = await supabase.auth.admin.listUsers();
+      if (inviteError.message?.includes("already been registered") || (inviteError as any).status === 422) {
+        const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
         const existingUser = users?.find((u: any) => u.email === contact.email);
         if (existingUser) {
-          await supabase
+          await supabaseAdmin
             .from("trusted_contacts")
             .update({ invitation_sent: true, invited_user_id: existingUser.id })
             .eq("id", contactId);
@@ -110,8 +107,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Update the contact with invitation status and the new user's ID
-    await supabase
+    // Update the contact with invitation status
+    await supabaseAdmin
       .from("trusted_contacts")
       .update({
         invitation_sent: true,
