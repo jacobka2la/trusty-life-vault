@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, Search, Upload, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import PlanSelection from '@/components/PlanSelection';
+
 
 const categories = ['Legal', 'Financial', 'Insurance', 'Property', 'Digital Accounts', 'Personal Wishes', 'Medical', 'IDs'];
 
@@ -40,13 +40,6 @@ const VaultItems = () => {
   const [search, setSearch] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-
-  // Check localStorage for previously selected plan
-  useEffect(() => {
-    const plan = localStorage.getItem('docuvault_selected_plan');
-    if (plan) setSelectedPlan(plan);
-  }, []);
 
   const fetchItems = async () => {
     if (!user) return;
@@ -57,11 +50,6 @@ const VaultItems = () => {
 
   useEffect(() => { fetchItems(); }, [user]);
 
-  const handlePlanSelect = (plan: string) => {
-    setSelectedPlan(plan);
-    localStorage.setItem('docuvault_selected_plan', plan);
-    toast.success(`${plan === 'trial' ? 'Free trial' : plan === 'monthly' ? 'Monthly plan' : 'Annual plan'} selected! You can now add vault items.`);
-  };
 
   const handleSave = async () => {
     if (!user || !form.title.trim()) { toast.error('Title is required'); return; }
@@ -134,10 +122,6 @@ const VaultItems = () => {
     (search === '' || i.title.toLowerCase().includes(search.toLowerCase()))
   );
 
-  // Show plan selection if no plan chosen AND no existing items
-  if (!loading && items.length === 0 && !selectedPlan) {
-    return <PlanSelection onSelect={handlePlanSelect} />;
-  }
 
   return (
     <div>

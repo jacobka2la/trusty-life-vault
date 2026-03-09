@@ -1,8 +1,10 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Shield, LayoutDashboard, FolderOpen, FileText, Users, Bell, Settings, LogOut, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import PlanSelection from '@/components/PlanSelection';
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -14,9 +16,32 @@ const navItems = [
 ];
 
 export const DashboardLayout = () => {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(localStorage.getItem('docuvault_selected_plan'));
+  const [hasAssets, setHasAssets] = useState(false);
+  const [checkingAssets, setCheckingAssets] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const check = async () => {
+      const [{ count: vaultCount }, { count: docCount }] = await Promise.all([
+        supabase.from('vault_items').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('documents').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+      ]);
+      setHasAssets((vaultCount ?? 0) > 0 || (docCount ?? 0) > 0);
+      setCheckingAssets(false);
+    };
+    check();
+  }, [user, location.pathname]);
+
+  const needsPlan = hasAssets && !selectedPlan;
+
+  const handlePlanSelect = (plan: string) => {
+    setSelectedPlan(plan);
+    localStorage.setItem('docuvault_selected_plan', plan);
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -58,6 +83,14 @@ export const DashboardLayout = () => {
       </div>
     </>
   );
+
+  if (!checkingAssets && needsPlan) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <PlanSelection onSelect={handlePlanSelect} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-background">
