@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Sparkles, ArrowLeft } from 'lucide-react';
+import { Check, Sparkles, ArrowLeft, Users } from 'lucide-react';
 
 interface PlanSelectionProps {
   onSelect: (plan: string) => void;
+  isInvitedViewer?: boolean;
+  onSkipAsViewer?: () => void;
 }
 
 const plans = [
@@ -39,7 +41,7 @@ const plans = [
   },
 ];
 
-const PlanSelection = ({ onSelect }: PlanSelectionProps) => {
+const PlanSelection = ({ onSelect, isInvitedViewer, onSkipAsViewer }: PlanSelectionProps) => {
   const navigate = useNavigate();
   return (
   <div className="max-w-4xl mx-auto py-8">
@@ -48,10 +50,36 @@ const PlanSelection = ({ onSelect }: PlanSelectionProps) => {
         <ArrowLeft className="h-4 w-4" /> Back to Home
       </Button>
     </div>
+
+    {/* Invited viewer banner */}
+    {isInvitedViewer && onSkipAsViewer && (
+      <Card className="mb-8 border-primary/30 bg-primary/5 shadow-vault">
+        <CardContent className="p-6 flex flex-col sm:flex-row items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Users className="h-6 w-6 text-primary" />
+          </div>
+          <div className="flex-1 text-center sm:text-left">
+            <h3 className="font-heading font-semibold text-foreground mb-1">You've been invited as a Trusted Contact</h3>
+            <p className="text-sm text-muted-foreground">
+              Someone has shared their vault with you. You can view their shared items for free — no subscription needed. 
+              Or, choose a plan below to create your own vault too.
+            </p>
+          </div>
+          <Button onClick={onSkipAsViewer} variant="outline" className="flex-shrink-0 whitespace-nowrap">
+            Just View Shared Items
+          </Button>
+        </CardContent>
+      </Card>
+    )}
+
     <div className="text-center mb-10">
       <Sparkles className="h-10 w-10 text-primary mx-auto mb-3" />
       <h2 className="font-heading text-3xl font-bold text-foreground mb-2">Choose Your Plan</h2>
-      <p className="text-muted-foreground text-lg">Select a plan to start organizing your important information.</p>
+      <p className="text-muted-foreground text-lg">
+        {isInvitedViewer 
+          ? 'Want your own vault? Select a plan to start organizing your important information.'
+          : 'Select a plan to start organizing your important information.'}
+      </p>
     </div>
     <div className="grid md:grid-cols-3 gap-6">
       {plans.map((plan) => (

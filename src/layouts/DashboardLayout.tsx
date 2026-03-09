@@ -14,20 +14,11 @@ const ownerNavItems = [
   { label: 'Documents', href: '/dashboard/documents', icon: FileText },
   { label: 'Contacts', href: '/dashboard/contacts', icon: Users },
   { label: 'Reminders', href: '/dashboard/reminders', icon: Bell },
+  { label: 'Shared With Me', href: '/dashboard/shared', icon: Eye },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
 const viewerOnlyNavItems = [
-  { label: 'Shared Vault', href: '/dashboard/shared', icon: Eye },
-  { label: 'Settings', href: '/dashboard/settings', icon: Settings },
-];
-
-const bothNavItems = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Vault Items', href: '/dashboard/vault', icon: FolderOpen },
-  { label: 'Documents', href: '/dashboard/documents', icon: FileText },
-  { label: 'Contacts', href: '/dashboard/contacts', icon: Users },
-  { label: 'Reminders', href: '/dashboard/reminders', icon: Bell },
   { label: 'Shared With Me', href: '/dashboard/shared', icon: Eye },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
@@ -38,6 +29,7 @@ export const DashboardLayout = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [checkingPlan, setCheckingPlan] = useState(true);
   const [isViewOnlyContact, setIsViewOnlyContact] = useState(false);
+  const [skippedAsViewer, setSkippedAsViewer] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -48,7 +40,7 @@ export const DashboardLayout = () => {
       ]);
       const plan = (profileData as any)?.selected_plan || localStorage.getItem('docuvault_selected_plan') || null;
       setSelectedPlan(plan);
-      setIsViewOnlyContact(contactLinks && contactLinks.length > 0);
+      setIsViewOnlyContact(!!(contactLinks && contactLinks.length > 0));
       if (!(profileData as any)?.selected_plan && plan) {
         await supabase.from('profiles').update({ selected_plan: plan } as any).eq('user_id', user.id);
       }
@@ -57,7 +49,8 @@ export const DashboardLayout = () => {
     check();
   }, [user]);
 
-  const needsPlan = !selectedPlan && !isViewOnlyContact;
+  // Show plan gate only if no plan AND (not a viewer OR hasn't skipped)
+  const needsPlan = !selectedPlan && !(isViewOnlyContact && skippedAsViewer);
 
   const handlePlanSelect = async (plan: string) => {
     setSelectedPlan(plan);
@@ -67,20 +60,16 @@ export const DashboardLayout = () => {
     }
   };
 
+  const handleSkipAsViewer = () => {
+    setSkippedAsViewer(true);
+  };
+
   const handleLogout = async () => {
     await signOut();
   };
 
   // Determine which nav items to show
-  const getNavItems = () => {
-    const isOwner = !!selectedPlan;
-    const isViewer = isViewOnlyContact;
-    if (isOwner && isViewer) return bothNavItems;
-    if (isOwner) return ownerNavItems;
-    return viewerOnlyNavItems;
-  };
-
-  const navItems = getNavItems();
+  const navItems = selectedPlan ? ownerNavItems : viewerOnlyNavItems;
 
   return (
     <AnimatePresence mode="wait">
@@ -93,7 +82,11 @@ export const DashboardLayout = () => {
           transition={{ duration: 0.3 }}
           className="min-h-screen flex items-center justify-center bg-background p-4"
         >
-          <PlanSelection onSelect={handlePlanSelect} />
+          <PlanSelection
+            onSelect={handlePlanSelect}
+            isInvitedViewer={isViewOnlyContact}
+            onSkipAsViewer={handleSkipAsViewer}
+          />
         </motion.div>
       ) : (
         <motion.div
@@ -105,7 +98,7 @@ export const DashboardLayout = () => {
         >
           <header className="sticky top-0 z-30 bg-card border-b border-border">
             <div className="flex items-center h-14 px-4 gap-4">
-              <Link to="/dashboard" className="flex items-center gap-2 flex-shrink-0">
+              <Link to={selectedPlan ? "/dashboard" : "/dashboard/shared"} className="flex items-center gap-2 flex-shrink-0">
                 <Logo className="h-9 w-9" />
                 <span className="font-heading text-lg font-bold text-foreground hidden sm:inline">DocuVault</span>
               </Link>
