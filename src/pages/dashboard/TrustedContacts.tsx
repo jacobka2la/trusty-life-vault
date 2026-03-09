@@ -243,6 +243,7 @@ const TrustedContacts = () => {
             </div>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {/* Sharing Dialog */}
