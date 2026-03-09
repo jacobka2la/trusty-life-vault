@@ -5,8 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user } = useAuth();
