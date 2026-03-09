@@ -3,22 +3,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FolderOpen, FileText, Users, Bell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ vaultItems: 0, documents: 0, contacts: 0, nextReminder: 'Not set' });
   const [firstName, setFirstName] = useState('');
+  const [isViewerOnly, setIsViewerOnly] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const [{ count: vaultCount }, { count: docCount }, { count: contactCount }, { data: profile }, { data: reminder }] = await Promise.all([
+      const [{ count: vaultCount }, { count: docCount }, { count: contactCount }, { data: profile }, { data: reminder }, { data: contactLinks }] = await Promise.all([
         supabase.from('vault_items').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('documents').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('trusted_contacts').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('profiles').select('first_name').eq('user_id', user.id).single(),
+        supabase.from('profiles').select('first_name, selected_plan').eq('user_id', user.id).single(),
         supabase.from('reminders').select('next_reminder_date').eq('user_id', user.id).single(),
+        (supabase.from('trusted_contacts').select('id') as any).eq('invited_user_id', user.id).limit(1),
       ]);
+
+      const hasPlan = !!profile?.selected_plan;
+      const isViewer = !!(contactLinks && contactLinks.length > 0);
+      setIsViewerOnly(!hasPlan && isViewer);
+
       setStats({
         vaultItems: vaultCount || 0,
         documents: docCount || 0,
@@ -29,6 +37,15 @@ const Dashboard = () => {
     };
     fetchData();
   }, [user]);
+
+  // Redirect viewer-only users to the shared vault
+  if (isViewerOnly === true) {
+    return <Navigate to="/dashboard/shared" replace />;
+  }
+
+  if (isViewerOnly === null) {
+    return <p className="text-muted-foreground">Loading...</p>;
+  }
 
   const cards = [
     { label: 'Vault Items', value: stats.vaultItems, icon: FolderOpen, color: 'text-primary', desc: 'Accounts, policies, and important records stored securely in your vault.' },
