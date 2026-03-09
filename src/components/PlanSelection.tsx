@@ -11,7 +11,7 @@ const plans = [
   {
     id: 'trial',
     name: 'Free Trial',
-    price: 'Free for 2 weeks',
+    price: 'Start Your 14-Day Free Trial',
     subtext: 'then $6/mo',
     features: ['Full vault access for 14 days', 'Unlimited vault items', 'Document uploads', 'Trusted contacts', 'Cancel anytime'],
     cta: 'Start Free Trial',
