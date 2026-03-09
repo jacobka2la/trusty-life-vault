@@ -40,13 +40,6 @@ const VaultItems = () => {
   const [search, setSearch] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-
-  // Check localStorage for previously selected plan
-  useEffect(() => {
-    const plan = localStorage.getItem('docuvault_selected_plan');
-    if (plan) setSelectedPlan(plan);
-  }, []);
 
   const fetchItems = async () => {
     if (!user) return;
