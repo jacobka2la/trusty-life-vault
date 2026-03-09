@@ -18,6 +18,7 @@ interface Contact {
   access_level: string;
   invitation_sent?: boolean;
   invited_user_id?: string | null;
+  invitation_sent_at?: string | null;
 }
 
 const emptyForm = { full_name: '', email: '', phone: '', relationship: '', access_level: 'view' };
