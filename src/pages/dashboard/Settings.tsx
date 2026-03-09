@@ -10,7 +10,6 @@ import { validatePassword, PASSWORD_HINT } from '@/lib/passwordValidation';
 import { Badge } from '@/components/ui/badge';
 
 const planLabels: Record<string, string> = {
-  trial: '14-Day Free Trial',
   monthly: 'Monthly ($6/mo)',
   annual: 'Annual ($59/yr)',
 };
