@@ -177,11 +177,27 @@ const TrustedContacts = () => {
                     <span className="text-xs font-medium text-vault-green flex items-center gap-1">
                       <CheckCircle className="h-3 w-3" /> Accepted!
                     </span>
-                  ) : c.invitation_sent ? (
-                    <span className="text-xs font-medium text-vault-gold flex items-center gap-1">
-                      <Mail className="h-3 w-3" /> Invite Sent
-                    </span>
-                  ) : c.email ? (
+                  ) : c.invitation_sent ? (() => {
+                    const sentAt = c.invitation_sent_at ? new Date(c.invitation_sent_at).getTime() : 0;
+                    const threeHoursMs = 3 * 60 * 60 * 1000;
+                    const canResend = Date.now() - sentAt > threeHoursMs;
+                    return canResend ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-xs gap-1 text-primary"
+                        disabled={inviting === c.id}
+                        onClick={() => sendInvite(c.id)}
+                      >
+                        <Mail className="h-3 w-3" />
+                        {inviting === c.id ? 'Sending...' : 'Resend Invite'}
+                      </Button>
+                    ) : (
+                      <span className="text-xs font-medium text-vault-gold flex items-center gap-1">
+                        <Mail className="h-3 w-3" /> Invite Sent
+                      </span>
+                    );
+                  })() : c.email ? (
                     <Button
                       variant="ghost"
                       size="sm"

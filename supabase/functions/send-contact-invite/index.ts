@@ -113,6 +113,7 @@ Deno.serve(async (req) => {
       .from("trusted_contacts")
       .update({
         invitation_sent: true,
+        invitation_sent_at: new Date().toISOString(),
       })
       .eq("id", contactId);
 
