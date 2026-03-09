@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Shield, Heart, FolderPlus, Upload, Users, Bell, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Shield, Heart, FolderPlus, Upload, Users, Bell, CheckCircle, ArrowRight, ArrowLeft, FileText, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 const totalSteps = 7;
