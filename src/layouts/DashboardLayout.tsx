@@ -1,11 +1,12 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Shield, LayoutDashboard, FolderOpen, FileText, Users, Bell, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, FileText, Users, Bell, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PlanSelection from '@/components/PlanSelection';
+import Logo from '@/components/Logo';
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -73,7 +74,7 @@ export const DashboardLayout = () => {
           <header className="sticky top-0 z-30 bg-card border-b border-border">
             <div className="flex items-center h-14 px-4 gap-4">
               <Link to="/dashboard" className="flex items-center gap-2 flex-shrink-0">
-                <Shield className="h-6 w-6 text-primary" />
+                <Logo className="h-7 w-7" />
                 <span className="font-heading text-lg font-bold text-foreground hidden sm:inline">DocuVault</span>
               </Link>
 

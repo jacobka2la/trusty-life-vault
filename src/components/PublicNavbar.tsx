@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import { Shield, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Logo from '@/components/Logo';
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -21,7 +22,7 @@ export const PublicNavbar = () => {
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <Shield className="h-7 w-7 text-primary" />
+          <Logo className="h-7 w-7" />
           <span className="font-heading text-xl font-bold text-foreground">DocuVault</span>
         </Link>
 

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield } from 'lucide-react';
+import Logo from '@/components/Logo';
 import { toast } from 'sonner';
 
 const ForgotPassword = () => {
@@ -32,7 +32,7 @@ const ForgotPassword = () => {
       <Card className="w-full max-w-md shadow-vault-lg">
         <CardHeader className="text-center">
           <Link to="/" className="flex items-center justify-center gap-2 mb-2">
-            <Shield className="h-8 w-8 text-primary" />
+            <Logo className="h-8 w-8" />
             <span className="font-heading text-2xl font-bold text-foreground">DocuVault</span>
           </Link>
           <CardTitle className="font-heading text-xl">Reset Password</CardTitle>
