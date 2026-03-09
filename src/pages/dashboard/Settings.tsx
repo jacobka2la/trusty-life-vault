@@ -114,8 +114,8 @@ const SettingsPage = () => {
                 <p className="text-sm text-muted-foreground">
                   You currently have view-only access to shared items. Want your own vault?
                 </p>
-                <Button onClick={() => handleChangePlan('trial')}>
-                  Start Your Own Vault (14-Day Free Trial)
+                <Button onClick={() => handleChangePlan('monthly')}>
+                  Start Your Own Vault (Monthly $6/mo)
                 </Button>
               </>
             ) : selectedPlan ? (
