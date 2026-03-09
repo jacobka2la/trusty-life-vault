@@ -39,8 +39,15 @@ const plans = [
   },
 ];
 
-const PlanSelection = ({ onSelect }: PlanSelectionProps) => (
+const PlanSelection = ({ onSelect }: PlanSelectionProps) => {
+  const navigate = useNavigate();
+  return (
   <div className="max-w-4xl mx-auto py-8">
+    <div className="mb-6">
+      <Button variant="ghost" onClick={() => navigate('/')} className="gap-2 text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="h-4 w-4" /> Back to Home
+      </Button>
+    </div>
     <div className="text-center mb-10">
       <Sparkles className="h-10 w-10 text-primary mx-auto mb-3" />
       <h2 className="font-heading text-3xl font-bold text-foreground mb-2">Choose Your Plan</h2>
