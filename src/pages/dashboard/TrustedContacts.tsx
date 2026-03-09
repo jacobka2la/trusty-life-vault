@@ -45,9 +45,18 @@ const TrustedContacts = () => {
     if (!form.email.trim()) { toast.error('Email is required to send an invitation'); return; }
 
     if (editing) {
-      const { error } = await supabase.from('trusted_contacts').update({ 
+      // Find the original contact to check if email changed
+      const original = contacts.find(c => c.id === editing);
+      const emailChanged = original && original.email !== form.email;
+      const updateData: any = { 
         full_name: form.full_name, email: form.email, phone: form.phone, relationship: form.relationship, access_level: 'view' 
-      }).eq('id', editing);
+      };
+      // Reset invitation if email was changed
+      if (emailChanged) {
+        updateData.invitation_sent = false;
+        updateData.invited_user_id = null;
+      }
+      const { error } = await supabase.from('trusted_contacts').update(updateData).eq('id', editing);
       if (error) { toast.error(error.message); return; }
       toast.success('Contact updated');
     } else {
@@ -163,9 +172,13 @@ const TrustedContacts = () => {
                 {c.phone && <p className="text-sm text-muted-foreground">{c.phone}</p>}
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-xs font-medium text-primary bg-vault-blue-light px-2 py-0.5 rounded-full">View Only</span>
-                  {c.invitation_sent ? (
+                  {c.invited_user_id ? (
                     <span className="text-xs font-medium text-vault-green flex items-center gap-1">
-                      <CheckCircle className="h-3 w-3" /> Invited
+                      <CheckCircle className="h-3 w-3" /> Accepted!
+                    </span>
+                  ) : c.invitation_sent ? (
+                    <span className="text-xs font-medium text-vault-gold flex items-center gap-1">
+                      <Mail className="h-3 w-3" /> Invite Sent
                     </span>
                   ) : c.email ? (
                     <Button
