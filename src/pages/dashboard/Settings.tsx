@@ -104,34 +104,44 @@ const SettingsPage = () => {
           </CardContent>
         </Card>
 
-        {/* Only show subscription for owners, not viewer-only users */}
-        {!isViewerOnly && (
-          <Card className="shadow-vault">
-            <CardHeader><CardTitle className="font-heading text-lg">Subscription Plan</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              {selectedPlan ? (
-                <>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-foreground">Current plan:</span>
-                    <Badge variant="secondary" className="text-sm">{planLabels[selectedPlan] || selectedPlan}</Badge>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {['trial', 'monthly', 'annual'].filter(p => p !== selectedPlan).map(plan => (
-                      <Button key={plan} variant="outline" size="sm" disabled={changingPlan} onClick={() => handleChangePlan(plan)}>
-                        Switch to {planLabels[plan]}
-                      </Button>
-                    ))}
-                  </div>
-                  <Button variant="destructive" size="sm" disabled={changingPlan} onClick={handleCancelPlan}>
-                    Cancel Plan
-                  </Button>
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">No active plan. Add vault items to get started with a plan.</p>
-              )}
-            </CardContent>
-          </Card>
-        )}
+        <Card className="shadow-vault">
+          <CardHeader><CardTitle className="font-heading text-lg">Subscription Plan</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            {isViewerOnly ? (
+              <>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-foreground">Current status:</span>
+                  <Badge variant="secondary" className="text-sm">Trusted Contact Only</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  You currently have view-only access to shared items. Want your own vault?
+                </p>
+                <Button onClick={() => handleChangePlan('trial')}>
+                  Start Your Own Vault (14-Day Free Trial)
+                </Button>
+              </>
+            ) : selectedPlan ? (
+              <>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-foreground">Current plan:</span>
+                  <Badge variant="secondary" className="text-sm">{planLabels[selectedPlan] || selectedPlan}</Badge>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {['trial', 'monthly', 'annual'].filter(p => p !== selectedPlan).map(plan => (
+                    <Button key={plan} variant="outline" size="sm" disabled={changingPlan} onClick={() => handleChangePlan(plan)}>
+                      Switch to {planLabels[plan]}
+                    </Button>
+                  ))}
+                </div>
+                <Button variant="destructive" size="sm" disabled={changingPlan} onClick={handleCancelPlan}>
+                  Cancel Plan
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">No active plan. Add vault items to get started with a plan.</p>
+            )}
+          </CardContent>
+        </Card>
 
         <Card className="shadow-vault">
           <CardHeader><CardTitle className="font-heading text-lg">Change Password</CardTitle></CardHeader>
