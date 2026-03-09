@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Users } from 'lucide-react';
+import { Plus, Pencil, Trash2, Users, Mail, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Contact {
@@ -17,6 +16,8 @@ interface Contact {
   phone: string | null;
   relationship: string | null;
   access_level: string;
+  invitation_sent?: boolean;
+  invited_user_id?: string | null;
 }
 
 const emptyForm = { full_name: '', email: '', phone: '', relationship: '', access_level: 'view' };
@@ -28,11 +29,12 @@ const TrustedContacts = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [inviting, setInviting] = useState<string | null>(null);
 
   const fetchContacts = async () => {
     if (!user) return;
     const { data } = await supabase.from('trusted_contacts').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-    setContacts(data || []);
+    setContacts((data as any[]) || []);
     setLoading(false);
   };
 
@@ -40,14 +42,25 @@ const TrustedContacts = () => {
 
   const handleSave = async () => {
     if (!user || !form.full_name.trim()) { toast.error('Name is required'); return; }
+    if (!form.email.trim()) { toast.error('Email is required to send an invitation'); return; }
+
     if (editing) {
-      const { error } = await supabase.from('trusted_contacts').update({ ...form }).eq('id', editing);
+      const { error } = await supabase.from('trusted_contacts').update({ 
+        full_name: form.full_name, email: form.email, phone: form.phone, relationship: form.relationship, access_level: 'view' 
+      }).eq('id', editing);
       if (error) { toast.error(error.message); return; }
       toast.success('Contact updated');
     } else {
-      const { error } = await supabase.from('trusted_contacts').insert({ ...form, user_id: user.id });
+      const { data: newContact, error } = await supabase.from('trusted_contacts').insert({ 
+        full_name: form.full_name, email: form.email, phone: form.phone, relationship: form.relationship, access_level: 'view', user_id: user.id 
+      }).select().single();
       if (error) { toast.error(error.message); return; }
       toast.success('Contact added');
+      
+      // Automatically send invitation
+      if (newContact && form.email.trim()) {
+        sendInvite((newContact as any).id);
+      }
     }
     setDialogOpen(false);
     setForm(emptyForm);
@@ -55,8 +68,24 @@ const TrustedContacts = () => {
     fetchContacts();
   };
 
+  const sendInvite = async (contactId: string) => {
+    setInviting(contactId);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-contact-invite', {
+        body: { contactId },
+      });
+      if (error) throw error;
+      toast.success(data?.message || 'Invitation sent!');
+      fetchContacts();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send invitation');
+    } finally {
+      setInviting(null);
+    }
+  };
+
   const handleEdit = (c: Contact) => {
-    setForm({ full_name: c.full_name, email: c.email || '', phone: c.phone || '', relationship: c.relationship || '', access_level: c.access_level });
+    setForm({ full_name: c.full_name, email: c.email || '', phone: c.phone || '', relationship: c.relationship || '', access_level: 'view' });
     setEditing(c.id);
     setDialogOpen(true);
   };
@@ -86,7 +115,7 @@ const TrustedContacts = () => {
                 <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Jane Doe" />
               </div>
               <div className="space-y-2">
-                <Label>Email</Label>
+                <Label>Email *</Label>
                 <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="jane@example.com" />
               </div>
               <div className="space-y-2">
@@ -97,17 +126,8 @@ const TrustedContacts = () => {
                 <Label>Relationship</Label>
                 <Input value={form.relationship} onChange={(e) => setForm({ ...form, relationship: e.target.value })} placeholder="e.g., Spouse, Attorney" />
               </div>
-              <div className="space-y-2">
-                <Label>Access Level</Label>
-                <Select value={form.access_level} onValueChange={(v) => setForm({ ...form, access_level: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="view">View Only</SelectItem>
-                    <SelectItem value="full">Full Access</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button onClick={handleSave} className="w-full">{editing ? 'Update Contact' : 'Add Contact'}</Button>
+              <p className="text-xs text-muted-foreground">Access level: View Only — contacts can only view your vault items.</p>
+              <Button onClick={handleSave} className="w-full">{editing ? 'Update Contact' : 'Add & Invite Contact'}</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -141,7 +161,25 @@ const TrustedContacts = () => {
               <CardContent>
                 {c.email && <p className="text-sm text-muted-foreground">{c.email}</p>}
                 {c.phone && <p className="text-sm text-muted-foreground">{c.phone}</p>}
-                <span className="text-xs font-medium text-primary bg-vault-blue-light px-2 py-0.5 rounded-full mt-2 inline-block">{c.access_level === 'full' ? 'Full Access' : 'View Only'}</span>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-xs font-medium text-primary bg-vault-blue-light px-2 py-0.5 rounded-full">View Only</span>
+                  {c.invitation_sent ? (
+                    <span className="text-xs font-medium text-vault-green flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3" /> Invited
+                    </span>
+                  ) : c.email ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs gap-1 text-primary"
+                      disabled={inviting === c.id}
+                      onClick={() => sendInvite(c.id)}
+                    >
+                      <Mail className="h-3 w-3" />
+                      {inviting === c.id ? 'Sending...' : 'Send Invite'}
+                    </Button>
+                  ) : null}
+                </div>
               </CardContent>
             </Card>
           ))}
