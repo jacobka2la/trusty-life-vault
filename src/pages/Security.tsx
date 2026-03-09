@@ -14,7 +14,7 @@ const Security = () => (
   <div className="py-20">
     <div className="container max-w-4xl">
       <div className="text-center mb-16">
-        <Shield className="h-14 w-14 text-primary mx-auto mb-4" />
+        <Logo className="h-14 w-14 mx-auto mb-4" />
         <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">Your Security Comes First</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           We understand you're trusting us with your most sensitive information. That's why security isn't just a feature — it's the foundation of everything we build.
