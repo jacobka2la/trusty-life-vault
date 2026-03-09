@@ -57,6 +57,21 @@ const Documents = () => {
     fetchDocs();
   };
 
+  const handleDownload = async (doc: DocRecord) => {
+    // Extract the storage path from the public URL
+    const bucketUrl = '/storage/v1/object/public/vault-documents/';
+    let filePath = doc.file_url;
+    if (filePath.includes(bucketUrl)) {
+      filePath = filePath.split(bucketUrl).pop() || filePath;
+    }
+    const { data, error } = await supabase.storage.from('vault-documents').createSignedUrl(filePath, 60);
+    if (error || !data?.signedUrl) {
+      toast.error('Could not generate download link');
+      return;
+    }
+    window.open(data.signedUrl, '_blank');
+  };
+
   const handleDelete = async (doc: DocRecord) => {
     const { error } = await supabase.from('documents').delete().eq('id', doc.id);
     if (error) { toast.error(error.message); return; }
