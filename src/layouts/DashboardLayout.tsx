@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PlanSelection from '@/components/PlanSelection';
-import logoImg from '@/assets/logo.png';
+import Logo from '@/components/Logo';
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
