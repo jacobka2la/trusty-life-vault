@@ -1,0 +1,1 @@
+ALTER TABLE public.trusted_contacts ADD COLUMN IF NOT EXISTS invitation_sent_at timestamptz DEFAULT NULL;
