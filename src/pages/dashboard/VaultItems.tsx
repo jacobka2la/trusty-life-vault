@@ -230,9 +230,27 @@ const VaultItems = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                {item.website_or_institution && <p className="text-sm text-muted-foreground">{item.website_or_institution}</p>}
-                {item.description && <p className="text-sm text-muted-foreground mt-1">{item.description}</p>}
+              <CardContent className="space-y-1.5">
+                {item.website_or_institution && (
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground/70">Institution:</span> {item.website_or_institution}
+                  </p>
+                )}
+                {item.account_number_or_identifier && (
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground/70">Account/ID:</span> {item.account_number_or_identifier}
+                  </p>
+                )}
+                {item.description && (
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground/70">Description:</span> {item.description}
+                  </p>
+                )}
+                {item.notes && (
+                  <p className="text-sm text-muted-foreground italic border-l-2 border-muted pl-2 mt-2">
+                    {item.notes}
+                  </p>
+                )}
                 {item.attachment_url && (
                   <a href={item.attachment_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2">
                     <FileText className="h-3.5 w-3.5" /> View attachment
