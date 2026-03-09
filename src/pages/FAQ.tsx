@@ -8,7 +8,7 @@ const faqs = [
   { q: 'What happens if I need to update something?', a: 'You can update your vault items anytime. DocuVault also includes optional reminders to prompt you to review and update your information periodically.' },
   { q: 'Can I upload documents?', a: 'Yes. You can upload PDFs, images, and other files and attach them to specific vault items for easy organization.' },
   { q: 'How do trusted contacts work?', a: 'Trusted contacts are people you designate — like family members, attorneys, or financial advisors. You choose their access level and what information they can see.' },
-  { q: 'Is there a free plan?', a: 'Yes! The Starter plan is completely free and includes up to 10 vault items, 5 document uploads, and 1 trusted contact.' },
+  { q: 'Is there a free trial?', a: 'Yes! DocuVault offers a 14-day free trial with full access to all features. After your trial ends, you can choose a monthly or annual plan to continue.' },
 ];
 
 const FAQ = () => (
