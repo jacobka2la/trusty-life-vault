@@ -122,6 +122,8 @@ export type Database = {
           email: string | null
           full_name: string
           id: string
+          invitation_sent: boolean
+          invited_user_id: string | null
           phone: string | null
           relationship: string | null
           user_id: string
@@ -132,6 +134,8 @@ export type Database = {
           email?: string | null
           full_name: string
           id?: string
+          invitation_sent?: boolean
+          invited_user_id?: string | null
           phone?: string | null
           relationship?: string | null
           user_id: string
@@ -142,6 +146,8 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
+          invitation_sent?: boolean
+          invited_user_id?: string | null
           phone?: string | null
           relationship?: string | null
           user_id?: string
