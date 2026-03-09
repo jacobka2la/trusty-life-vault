@@ -24,16 +24,23 @@ const SettingsPage = () => {
   const [changingPw, setChangingPw] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [changingPlan, setChangingPlan] = useState(false);
+  const [isViewerOnly, setIsViewerOnly] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('profiles').select('first_name, last_name, selected_plan').eq('user_id', user.id).single().then(({ data }) => {
-      if (data) {
-        setFirstName(data.first_name);
-        setLastName(data.last_name);
-        setSelectedPlan((data as any).selected_plan || localStorage.getItem('docuvault_selected_plan'));
+    const load = async () => {
+      const [{ data: profile }, { data: contactLinks }] = await Promise.all([
+        supabase.from('profiles').select('first_name, last_name, selected_plan').eq('user_id', user.id).single(),
+        (supabase.from('trusted_contacts').select('id') as any).eq('invited_user_id', user.id).limit(1),
+      ]);
+      if (profile) {
+        setFirstName(profile.first_name);
+        setLastName(profile.last_name);
+        setSelectedPlan(profile.selected_plan || localStorage.getItem('docuvault_selected_plan'));
       }
-    });
+      setIsViewerOnly(!profile?.selected_plan && contactLinks && contactLinks.length > 0);
+    };
+    load();
   }, [user]);
 
   const handleSaveProfile = async () => {
@@ -99,31 +106,34 @@ const SettingsPage = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-vault">
-          <CardHeader><CardTitle className="font-heading text-lg">Subscription Plan</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            {selectedPlan ? (
-              <>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-foreground">Current plan:</span>
-                  <Badge variant="secondary" className="text-sm">{planLabels[selectedPlan] || selectedPlan}</Badge>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {['trial', 'monthly', 'annual'].filter(p => p !== selectedPlan).map(plan => (
-                    <Button key={plan} variant="outline" size="sm" disabled={changingPlan} onClick={() => handleChangePlan(plan)}>
-                      Switch to {planLabels[plan]}
-                    </Button>
-                  ))}
-                </div>
-                <Button variant="destructive" size="sm" disabled={changingPlan} onClick={handleCancelPlan}>
-                  Cancel Plan
-                </Button>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">No active plan. Add vault items to get started with a plan.</p>
-            )}
-          </CardContent>
-        </Card>
+        {/* Only show subscription for owners, not viewer-only users */}
+        {!isViewerOnly && (
+          <Card className="shadow-vault">
+            <CardHeader><CardTitle className="font-heading text-lg">Subscription Plan</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              {selectedPlan ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-foreground">Current plan:</span>
+                    <Badge variant="secondary" className="text-sm">{planLabels[selectedPlan] || selectedPlan}</Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {['trial', 'monthly', 'annual'].filter(p => p !== selectedPlan).map(plan => (
+                      <Button key={plan} variant="outline" size="sm" disabled={changingPlan} onClick={() => handleChangePlan(plan)}>
+                        Switch to {planLabels[plan]}
+                      </Button>
+                    ))}
+                  </div>
+                  <Button variant="destructive" size="sm" disabled={changingPlan} onClick={handleCancelPlan}>
+                    Cancel Plan
+                  </Button>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">No active plan. Add vault items to get started with a plan.</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="shadow-vault">
           <CardHeader><CardTitle className="font-heading text-lg">Change Password</CardTitle></CardHeader>

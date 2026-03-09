@@ -8,14 +8,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PlanSelection from '@/components/PlanSelection';
 import Logo from '@/components/Logo';
 
-const navItems = [
+const ownerNavItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Vault Items', href: '/dashboard/vault', icon: FolderOpen },
   { label: 'Documents', href: '/dashboard/documents', icon: FileText },
   { label: 'Contacts', href: '/dashboard/contacts', icon: Users },
   { label: 'Reminders', href: '/dashboard/reminders', icon: Bell },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
-  { label: 'Shared', href: '/dashboard/shared', icon: Eye },
+];
+
+const viewerOnlyNavItems = [
+  { label: 'Shared Vault', href: '/dashboard/shared', icon: Eye },
+  { label: 'Settings', href: '/dashboard/settings', icon: Settings },
+];
+
+const bothNavItems = [
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Vault Items', href: '/dashboard/vault', icon: FolderOpen },
+  { label: 'Documents', href: '/dashboard/documents', icon: FileText },
+  { label: 'Contacts', href: '/dashboard/contacts', icon: Users },
+  { label: 'Reminders', href: '/dashboard/reminders', icon: Bell },
+  { label: 'Shared With Me', href: '/dashboard/shared', icon: Eye },
+  { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
 export const DashboardLayout = () => {
@@ -35,7 +49,6 @@ export const DashboardLayout = () => {
       const plan = (profileData as any)?.selected_plan || localStorage.getItem('docuvault_selected_plan') || null;
       setSelectedPlan(plan);
       setIsViewOnlyContact(contactLinks && contactLinks.length > 0);
-      // Migrate localStorage plan to DB if needed
       if (!(profileData as any)?.selected_plan && plan) {
         await supabase.from('profiles').update({ selected_plan: plan } as any).eq('user_id', user.id);
       }
@@ -44,7 +57,6 @@ export const DashboardLayout = () => {
     check();
   }, [user]);
 
-  // View-only contacts don't need a plan
   const needsPlan = !selectedPlan && !isViewOnlyContact;
 
   const handlePlanSelect = async (plan: string) => {
@@ -59,7 +71,17 @@ export const DashboardLayout = () => {
     await signOut();
   };
 
-  // Plan gate with smooth transition
+  // Determine which nav items to show
+  const getNavItems = () => {
+    const isOwner = !!selectedPlan;
+    const isViewer = isViewOnlyContact;
+    if (isOwner && isViewer) return bothNavItems;
+    if (isOwner) return ownerNavItems;
+    return viewerOnlyNavItems;
+  };
+
+  const navItems = getNavItems();
+
   return (
     <AnimatePresence mode="wait">
       {!checkingPlan && needsPlan ? (
@@ -81,7 +103,6 @@ export const DashboardLayout = () => {
           transition={{ duration: 0.35, delay: 0.05 }}
           className="min-h-screen flex flex-col bg-background"
         >
-          {/* Top nav bar with logo + horizontal nav */}
           <header className="sticky top-0 z-30 bg-card border-b border-border">
             <div className="flex items-center h-14 px-4 gap-4">
               <Link to="/dashboard" className="flex items-center gap-2 flex-shrink-0">
@@ -89,7 +110,6 @@ export const DashboardLayout = () => {
                 <span className="font-heading text-lg font-bold text-foreground hidden sm:inline">DocuVault</span>
               </Link>
 
-              {/* Scrollable nav links */}
               <nav className="flex-1 overflow-x-auto scrollbar-hide">
                 <div className="flex items-center gap-1 min-w-max">
                   {navItems.map((item) => {
@@ -118,7 +138,6 @@ export const DashboardLayout = () => {
             </div>
           </header>
 
-          {/* Main content */}
           <main className="flex-1 p-4 md:p-6">
             <Outlet />
           </main>
