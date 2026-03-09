@@ -50,11 +50,6 @@ const VaultItems = () => {
 
   useEffect(() => { fetchItems(); }, [user]);
 
-  const handlePlanSelect = (plan: string) => {
-    setSelectedPlan(plan);
-    localStorage.setItem('docuvault_selected_plan', plan);
-    toast.success(`${plan === 'trial' ? 'Free trial' : plan === 'monthly' ? 'Monthly plan' : 'Annual plan'} selected! You can now add vault items.`);
-  };
 
   const handleSave = async () => {
     if (!user || !form.title.trim()) { toast.error('Title is required'); return; }
