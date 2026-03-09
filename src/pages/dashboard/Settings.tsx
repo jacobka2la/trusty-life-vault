@@ -125,7 +125,7 @@ const SettingsPage = () => {
                   <Badge variant="secondary" className="text-sm">{planLabels[selectedPlan] || selectedPlan}</Badge>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {['trial', 'monthly', 'annual'].filter(p => p !== selectedPlan).map(plan => (
+                  {['monthly', 'annual'].filter(p => p !== selectedPlan).map(plan => (
                     <Button key={plan} variant="outline" size="sm" disabled={changingPlan} onClick={() => handleChangePlan(plan)}>
                       Switch to {planLabels[plan]}
                     </Button>
