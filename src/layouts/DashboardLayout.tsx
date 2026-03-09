@@ -29,7 +29,6 @@ export const DashboardLayout = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [checkingPlan, setCheckingPlan] = useState(true);
   const [isViewOnlyContact, setIsViewOnlyContact] = useState(false);
-  const [skippedAsViewer, setSkippedAsViewer] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -41,16 +40,12 @@ export const DashboardLayout = () => {
       const plan = (profileData as any)?.selected_plan || null;
       setSelectedPlan(plan);
       setIsViewOnlyContact(!!(contactLinks && contactLinks.length > 0));
-      if (!(profileData as any)?.selected_plan && plan) {
-        await supabase.from('profiles').update({ selected_plan: plan } as any).eq('user_id', user.id);
-      }
       setCheckingPlan(false);
     };
     check();
   }, [user]);
 
-  // Show plan gate only if no plan AND (not a viewer OR hasn't skipped)
-  const needsPlan = !selectedPlan && !(isViewOnlyContact && skippedAsViewer);
+  const needsPlan = !selectedPlan;
 
   const handlePlanSelect = async (plan: string) => {
     setSelectedPlan(plan);
@@ -60,16 +55,12 @@ export const DashboardLayout = () => {
     }
   };
 
-  const handleSkipAsViewer = () => {
-    setSkippedAsViewer(true);
-  };
-
   const handleLogout = async () => {
     await signOut();
   };
 
-  // Determine which nav items to show
-  const navItems = selectedPlan ? ownerNavItems : viewerOnlyNavItems;
+  const isOwnerPlan = selectedPlan && selectedPlan !== 'trusted_contact_only';
+  const navItems = isOwnerPlan ? ownerNavItems : viewerOnlyNavItems;
 
   return (
     <AnimatePresence mode="wait">
@@ -85,7 +76,6 @@ export const DashboardLayout = () => {
           <PlanSelection
             onSelect={handlePlanSelect}
             isInvitedViewer={isViewOnlyContact}
-            onSkipAsViewer={handleSkipAsViewer}
           />
         </motion.div>
       ) : (
@@ -98,7 +88,7 @@ export const DashboardLayout = () => {
         >
           <header className="sticky top-0 z-30 bg-card border-b border-border">
             <div className="flex items-center h-14 px-4 gap-4">
-              <Link to={selectedPlan ? "/dashboard" : "/dashboard/shared"} className="flex items-center gap-2 flex-shrink-0">
+              <Link to={isOwnerPlan ? "/dashboard" : "/dashboard/shared"} className="flex items-center gap-2 flex-shrink-0">
                 <Logo className="h-9 w-9" />
                 <span className="font-heading text-lg font-bold text-foreground hidden sm:inline">DocuVault</span>
               </Link>

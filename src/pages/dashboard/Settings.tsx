@@ -35,8 +35,7 @@ const SettingsPage = () => {
         setLastName(profile.last_name);
         setSelectedPlan(profile.selected_plan || localStorage.getItem('docuvault_selected_plan'));
       }
-      // Viewer-only = no plan at all (hide billing for them)
-      setIsViewerOnly(!profile?.selected_plan && !localStorage.getItem('docuvault_selected_plan'));
+      setIsViewerOnly(profile?.selected_plan === 'trusted_contact_only');
     };
     load();
   }, [user]);

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Sparkles, ArrowLeft, Users } from 'lucide-react';
+import { Check, Sparkles, ArrowLeft, Users, Eye } from 'lucide-react';
 
 interface PlanSelectionProps {
   onSelect: (plan: string) => void;
@@ -43,7 +43,7 @@ const plans = [
   },
 ];
 
-const PlanSelection = ({ onSelect, isInvitedViewer, onSkipAsViewer }: PlanSelectionProps) => {
+const PlanSelection = ({ onSelect, isInvitedViewer }: PlanSelectionProps) => {
   const navigate = useNavigate();
   return (
   <div className="max-w-4xl mx-auto py-8">
@@ -53,36 +53,44 @@ const PlanSelection = ({ onSelect, isInvitedViewer, onSkipAsViewer }: PlanSelect
       </Button>
     </div>
 
-    {/* Invited viewer banner */}
-    {isInvitedViewer && onSkipAsViewer && (
+    <div className="text-center mb-10">
+      <Sparkles className="h-10 w-10 text-primary mx-auto mb-3" />
+      <h2 className="font-heading text-3xl font-bold text-foreground mb-2">
+        {isInvitedViewer ? 'Welcome to DocuVault' : 'Choose Your Plan'}
+      </h2>
+      <p className="text-muted-foreground text-lg">
+        {isInvitedViewer 
+          ? "You've been invited as a Trusted Contact. View shared items for free, or start your own vault."
+          : 'Select a plan to start organizing your important information.'}
+      </p>
+    </div>
+
+    {/* Trusted Contact Free Option */}
+    {isInvitedViewer && (
       <Card className="mb-8 border-primary/30 bg-primary/5 shadow-vault">
         <CardContent className="p-6 flex flex-col sm:flex-row items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Users className="h-6 w-6 text-primary" />
+            <Eye className="h-6 w-6 text-primary" />
           </div>
           <div className="flex-1 text-center sm:text-left">
-            <h3 className="font-heading font-semibold text-foreground mb-1">You've been invited as a Trusted Contact</h3>
+            <h3 className="font-heading font-semibold text-foreground mb-1">Trusted Contact Only — Free</h3>
             <p className="text-sm text-muted-foreground">
-              Someone has shared their vault with you. You can view their shared items for free — no subscription needed. 
-              Or, choose a plan below to create your own vault too.
+              View items shared with you at no cost. You can always upgrade to your own vault later.
             </p>
           </div>
-          <Button onClick={onSkipAsViewer} variant="outline" className="flex-shrink-0 whitespace-nowrap">
-            Just View Shared Items
+          <Button onClick={() => onSelect('trusted_contact_only')} variant="default" className="flex-shrink-0 whitespace-nowrap">
+            Continue as Trusted Contact
           </Button>
         </CardContent>
       </Card>
     )}
 
-    <div className="text-center mb-10">
-      <Sparkles className="h-10 w-10 text-primary mx-auto mb-3" />
-      <h2 className="font-heading text-3xl font-bold text-foreground mb-2">Choose Your Plan</h2>
-      <p className="text-muted-foreground text-lg">
-        {isInvitedViewer 
-          ? 'Want your own vault? Select a plan to start organizing your important information.'
-          : 'Select a plan to start organizing your important information.'}
-      </p>
-    </div>
+    {isInvitedViewer && (
+      <div className="text-center mb-6">
+        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Or start your own vault</p>
+      </div>
+    )}
+
     <div className="grid md:grid-cols-3 gap-6">
       {plans.map((plan) => (
         <Card
