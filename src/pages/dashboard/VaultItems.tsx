@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Upload, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import PlanSelection from '@/components/PlanSelection';
 
 const categories = ['Legal', 'Financial', 'Insurance', 'Property', 'Digital Accounts', 'Personal Wishes', 'Medical', 'IDs'];
 
@@ -21,6 +22,7 @@ interface VaultItem {
   notes: string | null;
   account_number_or_identifier: string | null;
   website_or_institution: string | null;
+  attachment_url: string | null;
   visibility: string;
   created_at: string;
 }
@@ -36,6 +38,15 @@ const VaultItems = () => {
   const [form, setForm] = useState(emptyForm);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+
+  // Check localStorage for previously selected plan
+  useEffect(() => {
+    const plan = localStorage.getItem('docuvault_selected_plan');
+    if (plan) setSelectedPlan(plan);
+  }, []);
 
   const fetchItems = async () => {
     if (!user) return;
@@ -46,20 +57,54 @@ const VaultItems = () => {
 
   useEffect(() => { fetchItems(); }, [user]);
 
+  const handlePlanSelect = (plan: string) => {
+    setSelectedPlan(plan);
+    localStorage.setItem('docuvault_selected_plan', plan);
+    toast.success(`${plan === 'trial' ? 'Free trial' : plan === 'monthly' ? 'Monthly plan' : 'Annual plan'} selected! You can now add vault items.`);
+  };
+
   const handleSave = async () => {
     if (!user || !form.title.trim()) { toast.error('Title is required'); return; }
+    setUploading(true);
+
+    let attachmentUrl: string | null = null;
+
+    // Upload file if one is selected
+    if (file) {
+      const filePath = `${user.id}/${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase.storage.from('vault-documents').upload(filePath, file);
+      if (uploadError) { toast.error(uploadError.message); setUploading(false); return; }
+      const { data: urlData } = supabase.storage.from('vault-documents').getPublicUrl(filePath);
+      attachmentUrl = urlData.publicUrl || filePath;
+
+      // Also save to documents table
+      await supabase.from('documents').insert({
+        user_id: user.id,
+        file_name: file.name,
+        file_url: attachmentUrl,
+        file_type: file.type,
+      });
+    }
+
+    const payload = {
+      ...form,
+      ...(attachmentUrl ? { attachment_url: attachmentUrl } : {}),
+    };
+
     if (editing) {
-      const { error } = await supabase.from('vault_items').update({ ...form }).eq('id', editing);
-      if (error) { toast.error(error.message); return; }
+      const { error } = await supabase.from('vault_items').update(payload).eq('id', editing);
+      if (error) { toast.error(error.message); setUploading(false); return; }
       toast.success('Item updated');
     } else {
-      const { error } = await supabase.from('vault_items').insert({ ...form, user_id: user.id });
-      if (error) { toast.error(error.message); return; }
+      const { error } = await supabase.from('vault_items').insert({ ...payload, user_id: user.id });
+      if (error) { toast.error(error.message); setUploading(false); return; }
       toast.success('Item added');
     }
     setDialogOpen(false);
     setForm(emptyForm);
+    setFile(null);
     setEditing(null);
+    setUploading(false);
     fetchItems();
   };
 
@@ -73,6 +118,7 @@ const VaultItems = () => {
       website_or_institution: item.website_or_institution || '',
     });
     setEditing(item.id);
+    setFile(null);
     setDialogOpen(true);
   };
 
@@ -88,11 +134,16 @@ const VaultItems = () => {
     (search === '' || i.title.toLowerCase().includes(search.toLowerCase()))
   );
 
+  // Show plan selection if no plan chosen AND no existing items
+  if (!loading && items.length === 0 && !selectedPlan) {
+    return <PlanSelection onSelect={handlePlanSelect} />;
+  }
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h1 className="font-heading text-2xl font-bold text-foreground">Vault Items</h1>
-        <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setForm(emptyForm); setEditing(null); } }}>
+        <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setForm(emptyForm); setEditing(null); setFile(null); } }}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" /> Add Item</Button>
           </DialogTrigger>
@@ -130,7 +181,27 @@ const VaultItems = () => {
                 <Label>Notes</Label>
                 <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Additional notes" rows={2} />
               </div>
-              <Button onClick={handleSave} className="w-full">{editing ? 'Update Item' : 'Add Item'}</Button>
+              <div className="space-y-2">
+                <Label>Attach File (PDF, image, doc)</Label>
+                <Input
+                  type="file"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                />
+                {file && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <FileText className="h-4 w-4" />
+                    {file.name}
+                  </div>
+                )}
+              </div>
+              <Button onClick={handleSave} className="w-full" disabled={uploading}>
+                {uploading ? (
+                  <><Upload className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+                ) : (
+                  editing ? 'Update Item' : 'Add Item'
+                )}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -162,7 +233,7 @@ const VaultItems = () => {
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="text-xs font-medium text-primary bg-vault-blue-light px-2 py-0.5 rounded-full">{item.category}</span>
+                    <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{item.category}</span>
                     <CardTitle className="font-heading text-base mt-2">{item.title}</CardTitle>
                   </div>
                   <div className="flex gap-1">
@@ -178,6 +249,11 @@ const VaultItems = () => {
               <CardContent>
                 {item.website_or_institution && <p className="text-sm text-muted-foreground">{item.website_or_institution}</p>}
                 {item.description && <p className="text-sm text-muted-foreground mt-1">{item.description}</p>}
+                {item.attachment_url && (
+                  <a href={item.attachment_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2">
+                    <FileText className="h-3.5 w-3.5" /> View attachment
+                  </a>
+                )}
               </CardContent>
             </Card>
           ))}
