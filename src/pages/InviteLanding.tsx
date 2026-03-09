@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Users, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Users, Loader2 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { toast } from 'sonner';
 import { validatePassword, PASSWORD_HINT } from '@/lib/passwordValidation';
@@ -14,7 +14,9 @@ import { validatePassword, PASSWORD_HINT } from '@/lib/passwordValidation';
 const InviteLanding = () => {
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get('contact');
-  const { user, signUp, signIn } = useAuth();
+  const tokenHash = searchParams.get('token_hash');
+  const tokenType = searchParams.get('type');
+  const { user, signIn } = useAuth();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<'signup' | 'login'>('signup');
@@ -24,7 +26,7 @@ const InviteLanding = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [inviterName, setInviterName] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   // If user is already logged in, redirect to shared vault
   useEffect(() => {
@@ -33,19 +35,44 @@ const InviteLanding = () => {
     }
   }, [user, navigate]);
 
-  // Try to load the inviter's name from the contact record
+  // If there's a token_hash, verify the OTP to complete the invite
   useEffect(() => {
-    if (!contactId) return;
-    // We can't query trusted_contacts without auth, so we just show a generic message
-    // The inviter name will be visible after login
-  }, [contactId]);
+    if (tokenHash && tokenType === 'invite' && !user) {
+      setVerifying(true);
+      supabase.auth.verifyOtp({ 
+        token_hash: tokenHash, 
+        type: 'invite' as any,
+      }).then(({ data, error }) => {
+        setVerifying(false);
+        if (error) {
+          console.error('Token verification error:', error);
+          toast.error('This invite link has expired or is invalid. Please ask the vault owner for a new one.');
+        } else if (data?.user) {
+          toast.success('Account verified! Set your password in Settings.');
+          navigate('/dashboard/shared');
+        }
+      });
+    }
+  }, [tokenHash, tokenType, user, navigate]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     const pwError = validatePassword(password);
     if (pwError) { toast.error(pwError); return; }
     setLoading(true);
-    const { error } = await signUp(email, password, firstName, lastName);
+    
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { 
+          first_name: firstName, 
+          last_name: lastName,
+          invited_as_contact: true,
+        },
+      },
+    });
+    
     setLoading(false);
     if (error) {
       toast.error(error.message);
@@ -66,6 +93,20 @@ const InviteLanding = () => {
       navigate('/dashboard/shared');
     }
   };
+
+  if (verifying) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-hero p-4">
+        <Card className="w-full max-w-md shadow-vault-lg">
+          <CardContent className="p-8 text-center space-y-4">
+            <Loader2 className="h-10 w-10 text-primary mx-auto animate-spin" />
+            <h2 className="font-heading text-xl font-bold text-foreground">Verifying your invitation...</h2>
+            <p className="text-sm text-muted-foreground">Please wait while we set up your account.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-hero p-4">

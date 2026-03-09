@@ -111,10 +111,17 @@ const TrustedContacts = () => {
         body: { contactId },
       });
       if (error) throw error;
-      toast.success(data?.message || 'Invitation sent!');
+      
+      // If there's an invite link, copy it to clipboard
+      if (data?.inviteLink) {
+        await navigator.clipboard.writeText(data.inviteLink);
+        toast.success('Invite link copied to clipboard! Share it with your contact.');
+      } else {
+        toast.success(data?.message || 'Contact linked!');
+      }
       fetchContacts();
     } catch (err: any) {
-      toast.error(err.message || 'Failed to send invitation');
+      toast.error(err.message || 'Failed to generate invitation');
     } finally {
       setInviting(null);
     }
