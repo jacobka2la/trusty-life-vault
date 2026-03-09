@@ -29,16 +29,14 @@ const SettingsPage = () => {
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      const [{ data: profile }, { data: contactLinks }] = await Promise.all([
-        supabase.from('profiles').select('first_name, last_name, selected_plan').eq('user_id', user.id).single(),
-        (supabase.from('trusted_contacts').select('id') as any).eq('invited_user_id', user.id).limit(1),
-      ]);
+      const { data: profile } = await supabase.from('profiles').select('first_name, last_name, selected_plan').eq('user_id', user.id).single();
       if (profile) {
         setFirstName(profile.first_name);
         setLastName(profile.last_name);
         setSelectedPlan(profile.selected_plan || localStorage.getItem('docuvault_selected_plan'));
       }
-      setIsViewerOnly(!profile?.selected_plan && contactLinks && contactLinks.length > 0);
+      // Viewer-only = no plan at all (hide billing for them)
+      setIsViewerOnly(!profile?.selected_plan && !localStorage.getItem('docuvault_selected_plan'));
     };
     load();
   }, [user]);
