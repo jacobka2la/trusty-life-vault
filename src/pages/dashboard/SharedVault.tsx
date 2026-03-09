@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FolderOpen, FileText, User, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FolderOpen, FileText, User, Shield, Download } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
 
 interface SharedVaultData {
   ownerName: string;
@@ -17,10 +19,23 @@ const SharedVault = () => {
   const [sharedVaults, setSharedVaults] = useState<SharedVaultData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const handleDownload = async (fileUrl: string) => {
+    const bucketUrl = '/storage/v1/object/public/vault-documents/';
+    let filePath = fileUrl;
+    if (filePath.includes(bucketUrl)) {
+      filePath = filePath.split(bucketUrl).pop() || filePath;
+    }
+    const { data, error } = await supabase.storage.from('vault-documents').createSignedUrl(filePath, 60);
+    if (error || !data?.signedUrl) {
+      toast.error('Could not generate download link');
+      return;
+    }
+    window.open(data.signedUrl, '_blank');
+  };
+
   useEffect(() => {
     if (!user) return;
     const fetchShared = async () => {
-      // Find all trusted_contacts entries where this user is the invited contact
       const { data: contacts } = await (supabase
         .from('trusted_contacts')
         .select('user_id') as any)
@@ -35,7 +50,6 @@ const SharedVault = () => {
 
       const vaults: SharedVaultData[] = [];
       for (const ownerId of ownerIds) {
-        // Get shared_access entries for this viewer from this owner
         const [{ data: profile }, { data: shares }] = await Promise.all([
           supabase.from('profiles').select('first_name, last_name').eq('user_id', ownerId).single(),
           (supabase.from('shared_access').select('vault_item_id, document_id') as any)
@@ -122,13 +136,31 @@ const SharedVault = () => {
                         <CardTitle className="font-heading text-base">{item.title}</CardTitle>
                         <span className="text-xs text-muted-foreground">{item.category}</span>
                       </CardHeader>
-                      <CardContent>
-                        {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+                      <CardContent className="space-y-1.5">
                         {item.website_or_institution && (
-                          <p className="text-xs text-muted-foreground mt-1">{item.website_or_institution}</p>
+                          <p className="text-sm text-muted-foreground">
+                            <span className="font-medium text-foreground/70">Institution:</span> {item.website_or_institution}
+                          </p>
+                        )}
+                        {item.account_number_or_identifier && (
+                          <p className="text-sm text-muted-foreground">
+                            <span className="font-medium text-foreground/70">Account/ID:</span> {item.account_number_or_identifier}
+                          </p>
+                        )}
+                        {item.description && (
+                          <p className="text-sm text-muted-foreground">
+                            <span className="font-medium text-foreground/70">Description:</span> {item.description}
+                          </p>
                         )}
                         {item.notes && (
-                          <p className="text-xs text-muted-foreground mt-2 italic">{item.notes}</p>
+                          <p className="text-sm text-muted-foreground italic border-l-2 border-muted pl-2 mt-2">
+                            {item.notes}
+                          </p>
+                        )}
+                        {item.attachment_url && (
+                          <Button variant="ghost" size="sm" className="text-primary p-0 h-auto" onClick={() => handleDownload(item.attachment_url)}>
+                            <Download className="h-3.5 w-3.5 mr-1" /> Download attachment
+                          </Button>
                         )}
                       </CardContent>
                     </Card>
@@ -145,9 +177,14 @@ const SharedVault = () => {
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {vault.documents.map((doc: any) => (
                     <Card key={doc.id} className="shadow-vault">
-                      <CardContent className="p-4">
-                        <p className="text-sm font-medium text-foreground">{doc.file_name}</p>
-                        <p className="text-xs text-muted-foreground">{doc.file_type}</p>
+                      <CardContent className="p-4 flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{doc.file_name}</p>
+                          <p className="text-xs text-muted-foreground">{doc.file_type}</p>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => handleDownload(doc.file_url)}>
+                          <Download className="h-4 w-4" />
+                        </Button>
                       </CardContent>
                     </Card>
                   ))}

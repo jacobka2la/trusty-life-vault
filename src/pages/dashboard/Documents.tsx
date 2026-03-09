@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, FileText, Trash2, Upload } from 'lucide-react';
+import { Plus, FileText, Trash2, Upload, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface DocRecord {
@@ -55,6 +55,21 @@ const Documents = () => {
     setFile(null);
     setUploading(false);
     fetchDocs();
+  };
+
+  const handleDownload = async (doc: DocRecord) => {
+    // Extract the storage path from the public URL
+    const bucketUrl = '/storage/v1/object/public/vault-documents/';
+    let filePath = doc.file_url;
+    if (filePath.includes(bucketUrl)) {
+      filePath = filePath.split(bucketUrl).pop() || filePath;
+    }
+    const { data, error } = await supabase.storage.from('vault-documents').createSignedUrl(filePath, 60);
+    if (error || !data?.signedUrl) {
+      toast.error('Could not generate download link');
+      return;
+    }
+    window.open(data.signedUrl, '_blank');
   };
 
   const handleDelete = async (doc: DocRecord) => {
@@ -106,9 +121,14 @@ const Documents = () => {
                     <p className="text-xs text-muted-foreground">{new Date(doc.uploaded_at).toLocaleDateString()} • {doc.file_type}</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(doc)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => handleDownload(doc)}>
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(doc)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
