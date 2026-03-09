@@ -122,10 +122,6 @@ const VaultItems = () => {
     (search === '' || i.title.toLowerCase().includes(search.toLowerCase()))
   );
 
-  // Show plan selection if no plan chosen AND no existing items
-  if (!loading && items.length === 0 && !selectedPlan) {
-    return <PlanSelection onSelect={handlePlanSelect} />;
-  }
 
   return (
     <div>
