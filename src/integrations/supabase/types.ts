@@ -14,7 +14,182 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      documents: {
+        Row: {
+          file_name: string
+          file_type: string | null
+          file_url: string
+          id: string
+          uploaded_at: string
+          user_id: string
+          vault_item_id: string | null
+        }
+        Insert: {
+          file_name: string
+          file_type?: string | null
+          file_url: string
+          id?: string
+          uploaded_at?: string
+          user_id: string
+          vault_item_id?: string | null
+        }
+        Update: {
+          file_name?: string
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          uploaded_at?: string
+          user_id?: string
+          vault_item_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_vault_item_id_fkey"
+            columns: ["vault_item_id"]
+            isOneToOne: false
+            referencedRelation: "vault_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          onboarding_completed: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          onboarding_completed?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          onboarding_completed?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reminders: {
+        Row: {
+          created_at: string
+          id: string
+          next_reminder_date: string | null
+          reminder_enabled: boolean
+          reminder_frequency: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          next_reminder_date?: string | null
+          reminder_enabled?: boolean
+          reminder_frequency?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          next_reminder_date?: string | null
+          reminder_enabled?: boolean
+          reminder_frequency?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trusted_contacts: {
+        Row: {
+          access_level: string
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          relationship: string | null
+          user_id: string
+        }
+        Insert: {
+          access_level?: string
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          phone?: string | null
+          relationship?: string | null
+          user_id: string
+        }
+        Update: {
+          access_level?: string
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          relationship?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vault_items: {
+        Row: {
+          account_number_or_identifier: string | null
+          attachment_url: string | null
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          notes: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          visibility: string
+          website_or_institution: string | null
+        }
+        Insert: {
+          account_number_or_identifier?: string | null
+          attachment_url?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          visibility?: string
+          website_or_institution?: string | null
+        }
+        Update: {
+          account_number_or_identifier?: string | null
+          attachment_url?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          visibility?: string
+          website_or_institution?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
