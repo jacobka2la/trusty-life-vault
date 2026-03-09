@@ -1,4 +1,4 @@
-import Logo from '@/components/Logo';
+import Logo from '@/components/Logo'';
 import { Link } from 'react-router-dom';
 
 export const PublicFooter = () => (
@@ -7,7 +7,7 @@ export const PublicFooter = () => (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         <div>
           <Link to="/" className="flex items-center gap-2 mb-3">
-            <SLogo className="h-6 w-6 />
+            Logo className="h-6 w-6"6 />
             <span className="font-heading text-lg font-bold text-foreground">DocuVault</span>
           </Link>
           <p className="text-sm text-muted-foreground">Your secure digital vault for life's important information.</p>
