@@ -56,6 +56,7 @@ const TrustedContacts = () => {
       if (emailChanged) {
         updateData.invitation_sent = false;
         updateData.invited_user_id = null;
+        updateData.invitation_sent_at = null;
       }
       const { error } = await supabase.from('trusted_contacts').update(updateData).eq('id', editing);
       if (error) { toast.error(error.message); return; }
