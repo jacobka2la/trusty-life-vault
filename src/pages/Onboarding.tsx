@@ -32,6 +32,11 @@ const Onboarding = () => {
   // Reminder
   const [reminderFreq, setReminderFreq] = useState('quarterly');
 
+  // Document upload
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const progress = ((step + 1) / totalSteps) * 100;
 
   const handleAddVaultItem = async () => {
