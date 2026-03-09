@@ -34,7 +34,9 @@ const Dashboard = () => {
         vaultItems: vaultCount || 0,
         documents: docCount || 0,
         contacts: contactCount || 0,
-        nextReminder: reminder?.next_reminder_date || 'Not set',
+        nextReminder: reminder?.next_reminder_date 
+          ? format(new Date(reminder.next_reminder_date + 'T00:00:00'), 'MMM d, yyyy') 
+          : 'Not set',
       });
       setFirstName(profile?.first_name || '');
     };
