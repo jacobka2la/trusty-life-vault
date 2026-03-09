@@ -76,7 +76,6 @@ export const DashboardLayout = () => {
           <PlanSelection
             onSelect={handlePlanSelect}
             isInvitedViewer={isViewOnlyContact}
-            onSkipAsViewer={handleSkipAsViewer}
           />
         </motion.div>
       ) : (
