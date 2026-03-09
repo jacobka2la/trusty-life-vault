@@ -115,6 +115,51 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_access: {
+        Row: {
+          created_at: string
+          document_id: string | null
+          id: string
+          owner_user_id: string
+          permission_level: string
+          vault_item_id: string | null
+          viewer_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          owner_user_id: string
+          permission_level?: string
+          vault_item_id?: string | null
+          viewer_user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          owner_user_id?: string
+          permission_level?: string
+          vault_item_id?: string | null
+          viewer_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_access_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_access_vault_item_id_fkey"
+            columns: ["vault_item_id"]
+            isOneToOne: false
+            referencedRelation: "vault_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trusted_contacts: {
         Row: {
           access_level: string
