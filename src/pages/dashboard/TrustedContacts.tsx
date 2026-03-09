@@ -333,17 +333,17 @@ const TrustedContacts = () => {
                     return canResend ? (
                       <Button variant="ghost" size="sm" className="h-6 text-xs gap-1 text-primary" disabled={inviting === c.id} onClick={() => sendInvite(c.id)}>
                         <Mail className="h-3 w-3" />
-                        {inviting === c.id ? 'Sending...' : 'Resend Invite'}
+                        {inviting === c.id ? 'Generating...' : 'Copy New Link'}
                       </Button>
                     ) : (
                       <span className="text-xs font-medium text-vault-gold flex items-center gap-1">
-                        <Mail className="h-3 w-3" /> Invite Sent
+                        <Mail className="h-3 w-3" /> Link Generated
                       </span>
                     );
                   })() : c.email ? (
                     <Button variant="ghost" size="sm" className="h-6 text-xs gap-1 text-primary" disabled={inviting === c.id} onClick={() => sendInvite(c.id)}>
                       <Mail className="h-3 w-3" />
-                      {inviting === c.id ? 'Sending...' : 'Send Invite'}
+                      {inviting === c.id ? 'Generating...' : 'Get Invite Link'}
                     </Button>
                   ) : null}
                 </div>
