@@ -55,10 +55,6 @@ export const DashboardLayout = () => {
     }
   };
 
-  const handleSkipAsViewer = () => {
-    setSkippedAsViewer(true);
-  };
-
   const handleLogout = async () => {
     await signOut();
   };
