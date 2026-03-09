@@ -70,7 +70,7 @@ const SettingsPage = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>New Password</Label>
-              <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min. 6 characters" />
+              <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder={PASSWORD_HINT} />
             </div>
             <Button onClick={handleChangePassword} disabled={changingPw}>{changingPw ? 'Updating...' : 'Update Password'}</Button>
           </CardContent>
