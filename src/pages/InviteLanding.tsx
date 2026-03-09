@@ -31,7 +31,7 @@ const InviteLanding = () => {
   // If user is already logged in, redirect to shared vault
   useEffect(() => {
     if (user) {
-      navigate('/dashboard/shared');
+      navigate('/dashboard');
     }
   }, [user, navigate]);
 
@@ -48,8 +48,8 @@ const InviteLanding = () => {
           console.error('Token verification error:', error);
           toast.error('This invite link has expired or is invalid. Please ask the vault owner for a new one.');
         } else if (data?.user) {
-          toast.success('Account verified! Set your password in Settings.');
-          navigate('/dashboard/shared');
+          toast.success('Account verified! Redirecting...');
+          navigate('/dashboard');
         }
       });
     }
@@ -89,8 +89,8 @@ const InviteLanding = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Logged in! Redirecting to shared vault...');
-      navigate('/dashboard/shared');
+      toast.success('Logged in! Redirecting...');
+      navigate('/dashboard');
     }
   };
 
