@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Shield, Heart, FolderPlus, Upload, Users, Bell, CheckCircle, ArrowRight, ArrowLeft, FileText, X } from 'lucide-react';
+import { Heart, FolderPlus, Upload, Users, Bell, CheckCircle, ArrowRight, ArrowLeft, FileText, X } from 'lucide-react';
+import Logo from '@/components/Logo';
 import { toast } from 'sonner';
 
 const totalSteps = 7;
