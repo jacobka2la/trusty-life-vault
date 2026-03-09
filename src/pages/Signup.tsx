@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { validatePassword, PASSWORD_HINT } from '@/lib/passwordValidation';
 
 const Signup = () => {
   const [firstName, setFirstName] = useState('');
