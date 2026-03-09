@@ -172,9 +172,13 @@ const TrustedContacts = () => {
                 {c.phone && <p className="text-sm text-muted-foreground">{c.phone}</p>}
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-xs font-medium text-primary bg-vault-blue-light px-2 py-0.5 rounded-full">View Only</span>
-                  {c.invitation_sent ? (
+                  {c.invited_user_id ? (
                     <span className="text-xs font-medium text-vault-green flex items-center gap-1">
-                      <CheckCircle className="h-3 w-3" /> Invited
+                      <CheckCircle className="h-3 w-3" /> Accepted!
+                    </span>
+                  ) : c.invitation_sent ? (
+                    <span className="text-xs font-medium text-vault-gold flex items-center gap-1">
+                      <Mail className="h-3 w-3" /> Invite Sent
                     </span>
                   ) : c.email ? (
                     <Button
