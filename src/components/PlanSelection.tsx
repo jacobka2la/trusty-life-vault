@@ -1,6 +1,7 @@
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles, ArrowLeft } from 'lucide-react';
 
 interface PlanSelectionProps {
   onSelect: (plan: string) => void;
