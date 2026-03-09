@@ -13,7 +13,20 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        heading: ['Playfair Display', 'serif'],
+        body: ['Inter', 'sans-serif'],
+      },
       colors: {
+        vault: {
+          blue: "hsl(var(--vault-blue))",
+          "blue-light": "hsl(var(--vault-blue-light))",
+          green: "hsl(var(--vault-green))",
+          "green-light": "hsl(var(--vault-green-light))",
+          gold: "hsl(var(--vault-gold))",
+          "gold-light": "hsl(var(--vault-gold-light))",
+          navy: "hsl(var(--vault-navy))",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
