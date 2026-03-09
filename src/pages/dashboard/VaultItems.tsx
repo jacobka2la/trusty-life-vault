@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, Search, Upload, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import PlanSelection from '@/components/PlanSelection';
+
 
 const categories = ['Legal', 'Financial', 'Insurance', 'Property', 'Digital Accounts', 'Personal Wishes', 'Medical', 'IDs'];
 
