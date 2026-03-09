@@ -19,6 +19,22 @@ const SharedVault = () => {
   const [sharedVaults, setSharedVaults] = useState<SharedVaultData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const handleDownload = async (fileUrl: string) => {
+    const bucketUrl = '/storage/v1/object/public/vault-documents/';
+    let filePath = fileUrl;
+    if (filePath.includes(bucketUrl)) {
+      filePath = filePath.split(bucketUrl).pop() || filePath;
+    }
+    const { data, error } = await supabase.storage.from('vault-documents').createSignedUrl(filePath, 60);
+    if (error || !data?.signedUrl) {
+      toast.error('Could not generate download link');
+      return;
+    }
+    window.open(data.signedUrl, '_blank');
+  };
+  const [sharedVaults, setSharedVaults] = useState<SharedVaultData[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     if (!user) return;
     const fetchShared = async () => {
