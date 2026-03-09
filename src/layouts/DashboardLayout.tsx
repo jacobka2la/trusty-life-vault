@@ -59,8 +59,8 @@ export const DashboardLayout = () => {
     await signOut();
   };
 
-  // Determine which nav items to show
-  const navItems = selectedPlan ? ownerNavItems : viewerOnlyNavItems;
+  const isOwnerPlan = selectedPlan && selectedPlan !== 'trusted_contact_only';
+  const navItems = isOwnerPlan ? ownerNavItems : viewerOnlyNavItems;
 
   return (
     <AnimatePresence mode="wait">
