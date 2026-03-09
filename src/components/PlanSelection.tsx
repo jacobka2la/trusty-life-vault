@@ -13,15 +13,6 @@ const sharedFeatures = ['Unlimited vault items', 'Document uploads', 'Trusted co
 
 const plans = [
   {
-    id: 'trial',
-    name: 'Free Trial',
-    price: 'Start Your 14-Day Free Trial',
-    subtext: 'then $6/mo',
-    features: ['Full vault access for 14 days', ...sharedFeatures, 'Cancel anytime'],
-    cta: 'Start Free Trial',
-    featured: false,
-  },
-  {
     id: 'monthly',
     name: 'Monthly',
     price: '$6',
@@ -29,7 +20,7 @@ const plans = [
     subtext: 'Billed monthly',
     features: sharedFeatures,
     cta: 'Choose Monthly',
-    featured: true,
+    featured: false,
   },
   {
     id: 'annual',
@@ -39,7 +30,7 @@ const plans = [
     subtext: 'Save ~18%',
     features: [...sharedFeatures, 'Best value'],
     cta: 'Choose Annual',
-    featured: false,
+    featured: true,
   },
 ];
 
