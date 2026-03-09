@@ -89,8 +89,8 @@ const InviteLanding = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Logged in! Redirecting to shared vault...');
-      navigate('/dashboard/shared');
+      toast.success('Logged in! Redirecting...');
+      navigate('/dashboard');
     }
   };
 
