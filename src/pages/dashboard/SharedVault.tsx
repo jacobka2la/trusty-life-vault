@@ -21,10 +21,10 @@ const SharedVault = () => {
     if (!user) return;
     const fetchShared = async () => {
       // Find all trusted_contacts entries where this user is the invited contact
-      const { data: contacts } = await supabase
+      const { data: contacts } = await (supabase
         .from('trusted_contacts')
-        .select('user_id')
-        .eq('invited_user_id' as any, user.id);
+        .select('user_id') as any)
+        .eq('invited_user_id', user.id);
 
       if (!contacts || contacts.length === 0) {
         setLoading(false);
